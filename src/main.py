@@ -60,5 +60,5 @@ def main():
     print(f"Proposal:\n{final_state['draft_proposal']}")
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

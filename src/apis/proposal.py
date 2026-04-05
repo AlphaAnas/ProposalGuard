@@ -1,8 +1,11 @@
 import os
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File  
 from pydantic import BaseModel
 from src.main import run_proposal_pipeline
+from src.vectorStore import ProposalVectorStore
+import uuid
+
 
 # Create a logger
 logger = logging.getLogger("proposal_generation_api")
@@ -64,3 +67,58 @@ def generate_proposal(request: ProposalRequest):
     except Exception as e:
         logger.exception("Error during proposal generation")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+#  Initialize your existing Vector Database
+db = ProposalVectorStore()
+
+# 3. Create the Upload Endpoint
+@app.post("/api/proposals/upload")
+async def upload_proposal(file: UploadFile = File(...)):
+    """
+    Accepts a .txt file containing a past proposal and saves it to the vector database.
+    """
+    # Guardrail: Check file extension
+    if not file.filename.endswith(".txt"):
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid file type. Only .txt files are supported currently."
+        )
+    
+    try:
+        # Read the file asynchronously
+        content = await file.read()
+        
+        # Decode the bytes into a standard string
+        text_content = content.decode("utf-8")
+        
+        # Guardrail: Check if the file is empty
+        if not text_content.strip():
+            raise HTTPException(status_code=400, detail="The provided .txt file is empty.")
+
+        # Generate a unique ID for this document so it doesn't overwrite others
+        doc_id = str(uuid.uuid4())
+        
+        # Create metadata so you know where this vector came from
+        metadata = {
+            "filename": file.filename,
+            "source": "manual_upload",
+            "type": "past_proposal"
+        }
+        
+        # Add to Chroma DB using your existing method!
+        db.add_proposals(
+            texts=[text_content],
+            metadatas=[metadata],
+            ids=[doc_id]
+        )
+        
+        return {
+            "status": "success",
+            "message": f"Successfully ingested {file.filename}",
+            "document_id": doc_id
+        }
+
+    except Exception as e:
+        # Catch any encoding or database errors
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
