@@ -2,13 +2,18 @@ from src.state import GraphState
 
 
 def check_bias(state: GraphState) -> dict:
-    retry = state.get("retry_count", 0)
+    proposal = state.get("draft_proposal", "")
+    
+    # Simple heuristic: no bias if proposal is non-empty for now
+    flags = []
+    
+    # Example placeholder: if proposal is very short, flag it
+    if len(proposal) > 0 and len(proposal) < 100:
+        flags.append("Proposal is too short — consider adding more detail")
 
-    if retry == 0:
-        flags = ["Tone is overly submissive — consider more assertive language"]
+    if flags:
         print(f"[Bias] Found {len(flags)} flag(s)")
     else:
-        flags = []
         print("[Bias] Clean — no bias detected")
 
     return {

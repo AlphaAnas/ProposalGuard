@@ -2,18 +2,19 @@ from src.state import GraphState
 
 
 def retrieve_context(state: GraphState) -> dict:
-    print(f"[Retrieve] Received RFP: {state['rfp_text'][:80]}...")
+    resume_text = state.get("resume_text", "")
+    job_description = state.get("job_description", "")
 
-    fake_docs = [
-        "Past proposal for e-commerce site rebuild — React/Next.js, $8k, 4 weeks",
-        "Portfolio: Built SaaS dashboard with real-time analytics for fintech startup",
-        "Past proposal for AI chatbot integration — RAG pipeline, $12k, 6 weeks",
-    ]
+    print(f"[Retrieve] Job description (first 80 chars): {job_description[:80]}...")
 
-    print(f"[Retrieve] Found {len(fake_docs)} relevant documents")
+    # Use the resume text as the primary context for proposal generation.
+    # Split into chunks for readability; treat the whole resume as one doc.
+    context_docs = [resume_text] if resume_text else []
+
+    print(f"[Retrieve] Loaded {len(context_docs)} context document(s) from resume")
 
     return {
-        "retrieved_context": fake_docs,
+        "retrieved_context": context_docs,
         "draft_proposal": state.get("draft_proposal", None),
         "grounding_score": state.get("grounding_score", 0.0),
         "bias_flags": state.get("bias_flags", []),

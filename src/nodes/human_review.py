@@ -6,17 +6,10 @@ def human_review(state: GraphState) -> dict:
     retry = state.get("retry_count", 0)
 
     print(f"[Review] Proposal ready (score: {score}, attempt #{retry + 1})")
+    print("[Review] APPROVED — auto-approving for API flow")
 
-    if retry < 2:
-        feedback = "Add specific technologies and a timeline"
-        print(f"[Review] REJECTED — {feedback}")
-        return {
-            "human_feedback": feedback,
-            "status": "rejected",
-        }
-    else:
-        print("[Review] APPROVED")
-        return {
-            "human_feedback": None,
-            "status": "approved",
-        }
+    # Auto-approve: in a real system this would be a human-in-the-loop interrupt
+    return {
+        "human_feedback": None,
+        "status": "approved",
+    }

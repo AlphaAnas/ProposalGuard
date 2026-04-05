@@ -65,3 +65,13 @@ def generate_proposal_node(state: AgentState):
     
     # Update the state with the actual generated text
     return {"drafted_proposal": response.content}
+
+
+def finalize_proposal_node(state: AgentState):
+    """The final step that only runs AFTER human approval."""
+    print("--- NODE: FINALIZING PROPOSAL ---")
+    print("✅ Proposal Approved and Ready to Send!")
+    
+    # In a real app, this is where you would trigger an API to send the email/proposal.
+    # For now, we just pass the state through.
+    return {"drafted_proposal": state["drafted_proposal"]}
