@@ -1,0 +1,83 @@
+expected 20xx
+
+Cumulative GPA: 3.5/4.0
+
+Spring 20xx
+
+Robotics
+Machine Vision
+
+Control Systems
+Machines and Society
+
+4/xx - 6/xx
+
+1/xx - 3/xx
+
+6/xx - 9/xx
+
+Social Chair, Sigma Delta Tau Sorority
+
+20xx - present
+
+20xx - present
+
+Design:
+Programming:
+Fabrication:
+Languages:
+
+SolidWorks
+
+JULIA ENG-BACHELOR
+563 Salvatierra Walk . Stanford, CA 94305 . (650) 723-0000 . SUld@stanford.edu
+
+OBJECTIVE
+To obtain a hands-on position developing and optimizing robots and automated production systems
+
+EDUCATION
+Stanford University, Stanford, CA - B.S. in Mechanical Engineering
+Major GPA: 3.7/4.0
+
+Stanford in Berlin, Germany - studied German language, history and culture
+
+RELEVANT COURSEWORK
+Mechatronics
+Product Design
+
+COURSE PROJECTS
+Integrated Compliant Arm-Wrist Robot
+. Worked on a team to simulate and program an existing robot with 6 degrees of freedom
+. Empirically determined the acceptable gripping pressures for objects of differing shape, weight,
+and surface texture
+. Successfully trained robot to pick up and manipulate a delicate wineglass without damaging it
+
+Throw & Catch Robots
+. Trained twin robots to repeatedly throw and catch a tennis ball
+. Worked on a three-person team to simulate and develop the motion and control algorithms
+. Led the team in rendering and fine-tuning the algorithms into C++
+
+EXPERIENCE
+Engineering Intern, Siemens AG, Munich, Germany
+. Provided drafting and engineering support at a plant manufacturing drives and motors
+. Updated and maintained electro-mechanical drawings and documentation
+. Adhered to best-practice protocols for document control
+. Observed factory operations employing precision robots and machine vision
+
+ACTIVITIES
+
+. Led committee that planned and organized monthly events for all 50 women in the house
+. Organized a successful benefit dinner that exceeded fundraising goal (>$5000)
+
+Tour Guide, Stanford University
+. Polished public speaking skills while conducting three campus tours per week
+
+SKILLS
+
+Matlab, C/C++, Java, HTML
+CNC mill, lathe, brazing
+German (conversational)
+
+PROFESSIONAL AFFILIATIONS
+American Society of Mechanical Engineers . Tau Beta Pi Engineering Honor Society .
+Society of Women Engineers
