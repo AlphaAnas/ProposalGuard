@@ -1,4 +1,4 @@
-from state import GraphState
+from src.state import GraphState
 
 
 def retrieve_context(state: GraphState) -> dict:
@@ -14,5 +14,10 @@ def retrieve_context(state: GraphState) -> dict:
 
     return {
         "retrieved_context": fake_docs,
+        "draft_proposal": state.get("draft_proposal", None),
+        "grounding_score": state.get("grounding_score", 0.0),
+        "bias_flags": state.get("bias_flags", []),
+        "retry_count": state.get("retry_count", 0),
+        "human_feedback": state.get("human_feedback", None),
         "status": "retrieved",
     }

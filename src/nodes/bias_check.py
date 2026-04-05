@@ -1,8 +1,8 @@
-from state import GraphState
+from src.state import GraphState
 
 
 def check_bias(state: GraphState) -> dict:
-    retry = state["retry_count"]
+    retry = state.get("retry_count", 0)
 
     if retry == 0:
         flags = ["Tone is overly submissive — consider more assertive language"]

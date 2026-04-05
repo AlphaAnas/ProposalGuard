@@ -1,10 +1,10 @@
-from state import GraphState
+from src.state import GraphState
 
 
 def generate_proposal(state: GraphState) -> dict:
     context = state["retrieved_context"]
-    retry = state["retry_count"]
-    feedback = state["human_feedback"]
+    retry = state.get("retry_count", 0)
+    feedback = state.get("human_feedback", None)
 
     print(f"[Generate] Drafting proposal (attempt #{retry + 1})")
     if feedback:

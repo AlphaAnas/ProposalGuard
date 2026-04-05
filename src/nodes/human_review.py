@@ -1,9 +1,9 @@
-from state import GraphState
+from src.state import GraphState
 
 
 def human_review(state: GraphState) -> dict:
-    score = state["grounding_score"]
-    retry = state["retry_count"]
+    score = state.get("grounding_score", 0.0)
+    retry = state.get("retry_count", 0)
 
     print(f"[Review] Proposal ready (score: {score}, attempt #{retry + 1})")
 

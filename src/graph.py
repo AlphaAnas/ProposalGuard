@@ -1,41 +1,46 @@
 from langgraph.graph import StateGraph, START, END
-from state import GraphState
-from nodes.retrieve import retrieve_context
-from nodes.generate import generate_proposal
-from nodes.verify import verify_grounding
-from nodes.bias_check import check_bias
-from nodes.human_review import human_review
+from src.state import GraphState
+from src.nodes.retrieve import retrieve_context
+from src.nodes.generate import generate_proposal
+from src.nodes.verify import verify_grounding
+from src.nodes.bias_check import check_bias
+from src.nodes.human_review import human_review
 
 GROUNDING_THRESHOLD = 0.7
 MAX_RETRIES = 3
 
 
 def route_after_verification(state: GraphState) -> str:
-    if state["grounding_score"] >= GROUNDING_THRESHOLD:
+    score = state.get("grounding_score", 0.0)
+    if score >= GROUNDING_THRESHOLD:
         return "pass"
     return "fail"
 
 
 def route_after_bias(state: GraphState) -> str:
-    if len(state["bias_flags"]) == 0:
+    flags = state.get("bias_flags", [])
+    if len(flags) == 0:
         return "clean"
     return "flagged"
 
 
 def route_after_human(state: GraphState) -> str:
-    if state["human_feedback"] is None:
+    feedback = state.get("human_feedback", None)
+    if feedback is None:
         return "approved"
     return "rejected"
 
 
 def increment_retry(state: GraphState) -> dict:
-    new_count = state["retry_count"] + 1
-    print(f"[Retry] {state['retry_count']} -> {new_count}")
+    current_count = state.get("retry_count", 0)
+    new_count = current_count + 1
+    print(f"[Retry] {current_count} -> {new_count}")
     return {"retry_count": new_count}
 
 
 def route_after_retry(state: GraphState) -> str:
-    if state["retry_count"] >= MAX_RETRIES:
+    retry_count = state.get("retry_count", 0)
+    if retry_count >= MAX_RETRIES:
         return "force_review"
     return "regenerate"
 
