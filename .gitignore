@@ -3,3 +3,24 @@ __pycache__/
 .env
 *.pyc
 .DS_Store
+# Environments
+venv/
+env/
+.env
+env
+env/*
+
+# Vector Database local storage
+chroma_db_data/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
