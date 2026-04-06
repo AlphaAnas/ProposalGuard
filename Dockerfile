@@ -17,8 +17,6 @@ COPY src ./src
 # 2a. Copy the Data folder needed by the application
 COPY data ./data
 
-# 2b. Copy the .env file needed by the application
-COPY .env .
 
 # 3. Install the dependencies
 RUN pip install --no-cache-dir -r requirements.txt
