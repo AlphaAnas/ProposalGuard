@@ -21,4 +21,34 @@ source venv/bin/activate
  venv\Scripts\activate
 ```
 
-### 
+### Install dependencies
+```bash
+pip install -r requirements.txt
+```
+### Setting up environment variables
+- Create a .env file in the root directory
+- Add the following variables to the .env file
+```bash
+GOOGLE_API_KEY=your_google_api_key
+CHROMA_DB_PATH=./chroma_db  
+``` 
+### Run the pipeline 
+Run the following command from root directory   
+```bash
+uvicorn src.app:app --reload    
+```
+
+### Test the API
+- Open the following URL in your browser: http://127.0.0.1:8000/docs
+- Click on "POST /generate" and then "Try it out"
+- Enter a job description and click "Execute"  
+
+### Example job description
+```bash
+"Looking for a senior full-stack developer to build an AI-powered customer support dashboard. Must be proficient in Next.js, TypeScript, Supabase, and Tailwind CSS. Experience with AI integrations and data visualization is a plus. The dashboard will help businesses automate responses and analyze customer interactions."
+``` 
+
+## Setting up Vector DB
+Run the `/proposals/upload` endpoint to upload past proposals to the vector database. 
+
+
