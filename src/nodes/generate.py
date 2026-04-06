@@ -22,7 +22,17 @@ def generate_proposal(state: GraphState) -> dict:
     if feedback:
         print(f"[Generate] Incorporating feedback: {feedback}")
 
-    resume_text = "\n\n".join(context) if context else "No resume context available."
+    # Distinguish between resume and past proposals in the context
+    resume_content = context[0] if context else "No resume available."
+    past_proposals = context[1:] if len(context) > 1 else []
+    
+    past_proposals_text = (
+        "\n\n---\n\n".join(past_proposals) if past_proposals else "No past proposals found."
+    )
+
+    print(f"[SAMPLE] {past_proposals[0]}")
+
+    print(f"[Generate] context size: {len(context)} (1 resume + {len(past_proposals)} past proposals)")
 
     feedback_section = (
         f"\n\nPrevious feedback to incorporate:\n{feedback}" if feedback else ""
@@ -33,11 +43,14 @@ def generate_proposal(state: GraphState) -> dict:
         "converting, concise cover letter / proposal for the job below.\n\n"
         "CRITICAL RULES:\n"
         "1. ONLY use skills and experience from the resume provided. Do NOT hallucinate.\n"
-        "2. Keep it professional, conversational, and under 4 short paragraphs.\n"
-        "3. Avoid generic buzzwords. Be specific and genuine.\n"
-        "4. End with a clear call to action.\n\n"
+        "2. You can use the 'Past Relevant Proposals' as *inspiration* for your tone and structure, "
+        "but the *details* of the work must match the Applicant's Resume.\n"
+        "3. Keep it professional, conversational, and under 4 short paragraphs.\n"
+        "4. Avoid generic buzzwords. Be specific and genuine.\n"
+        "5. End with a clear call to action.\n\n"
         "Job Description:\n{job_description}\n\n"
-        "Applicant Resume:\n{resume_text}"
+        "Applicant Resume:\n{resume_text}\n\n"
+        "Past Relevant Proposals (for inspiration):\n{past_proposals_text}"
         "{feedback_section}\n\n"
         "Proposal:"
     )
@@ -45,7 +58,8 @@ def generate_proposal(state: GraphState) -> dict:
     chain = prompt | _llm
     response = chain.invoke({
         "job_description": job_description,
-        "resume_text": resume_text,
+        "resume_text": resume_content,
+        "past_proposals_text": past_proposals_text,
         "feedback_section": feedback_section,
     })
 

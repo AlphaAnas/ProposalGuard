@@ -2,6 +2,7 @@ from src.state import GraphState
 
 
 def verify_grounding(state: GraphState) -> dict:
+    # is mein add to verify against past proposals as well
     proposal = state.get("draft_proposal", "")
     resume = state.get("resume_text", "")
     

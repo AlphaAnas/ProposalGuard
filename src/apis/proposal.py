@@ -25,7 +25,7 @@ class ProposalRequest(BaseModel):
     job_description: str
 
 
-@router.post("/generate_proposal")
+@router.post("/proposals/generate_proposal")
 def generate_proposal(request: ProposalRequest):
     job_description = request.job_description
     logger.info("Generating proposal for job description: %s...", job_description[:50])
@@ -73,7 +73,7 @@ def generate_proposal(request: ProposalRequest):
 db = ProposalVectorStore()
 
 # 3. Create the Upload Endpoint
-@app.post("/api/proposals/upload")
+@router.post("/proposals/upload")
 async def upload_proposal(file: UploadFile = File(...)):
     """
     Accepts a .txt file containing a past proposal and saves it to the vector database.

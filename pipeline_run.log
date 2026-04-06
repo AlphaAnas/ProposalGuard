@@ -1,0 +1,37 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights:  13%|█▎        | 13/103 [00:14<01:38,  1.10s/it]Loading weights: 100%|██████████| 103/103 [00:14<00:00,  7.22it/s]
+[1mBertModel LOAD REPORT[0m from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  | 
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+✅ LangChain-native Chroma DB ready. Collection 'past_proposals' initialized.
+==================================================
+ProposalGuard — Pipeline Run
+==================================================
+[Retrieve] Job description (first 80 chars): Looking for a senior full-stack developer to build an AI-powered customer suppor...
+[Retrieve] Fetching relevant past proposals from Vector DB...
+[Retrieve] Added 2 past proposal(s) from Vector DB
+[Retrieve] Total context documents: 3 (1 resume + 2 from DB)
+[Generate] Drafting proposal with Gemini (attempt #1)
+[Generate] context size: 3 (1 resume + 2 past proposals)
+[Generate] Proposal generated (1410 chars)
+[Verify] Grounding score: 0.9 (based on proposal length)
+[Bias] Clean — no bias detected
+[Review] Proposal ready (score: 0.9, attempt #1)
+[Review] APPROVED — auto-approving for API flow
+==================================================
+Status:    approved
+Retries:   0
+Score:     0.9
+Bias:      []
+Proposal:
+Hello, I am writing to express my interest in the Senior Full-Stack Developer position for your AI-powered customer support dashboard. My engineering background, with a strong focus on robotics, has provided me with extensive experience in programming and developing systems that interact with their environment in real-time.
+
+In projects like the Integrated Compliant Arm-Wrist Robot and Throw & Catch Robots, I was responsible for simulating and programming complex systems, including developing motion and control algorithms in C++. This work involved training robots for delicate manipulation tasks and fine-tuning their behavior, which I believe offers foundational experience in developing intelligent, responsive systems.
+
+While the specific web technologies like Next.js, TypeScript, and Supabase are not explicitly in my current toolkit, my proficiency in programming languages such as C++, Java, and HTML, combined with a strong analytical approach from my engineering background, demonstrates my capacity to quickly master new technical stacks. My experience at Siemens also honed my ability to understand complex processes and documentation.
+
+I am eager to discuss how my proven ability to program, develop real-time control systems, and quickly adapt to new technical challenges can contribute to your project. Please let me know if you would be available for a brief call to explore this further.
