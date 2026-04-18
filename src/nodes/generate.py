@@ -30,7 +30,8 @@ def generate_proposal(state: GraphState) -> dict:
         "\n\n---\n\n".join(past_proposals) if past_proposals else "No past proposals found."
     )
 
-    print(f"[SAMPLE] {past_proposals[0]}")
+    if past_proposals:
+        print(f"[SAMPLE] {past_proposals[0][:120]}...")
 
     print(f"[Generate] context size: {len(context)} (1 resume + {len(past_proposals)} past proposals)")
 
@@ -41,16 +42,17 @@ def generate_proposal(state: GraphState) -> dict:
     prompt = PromptTemplate.from_template(
         "You are an expert freelance proposal writer. Your task is to write a highly "
         "converting, concise cover letter / proposal for the job below.\n\n"
-        "CRITICAL RULES:\n"
-        "1. ONLY use skills and experience from the resume provided. Do NOT hallucinate.\n"
-        "2. You can use the 'Past Relevant Proposals' as *inspiration* for your tone and structure, "
-        "but the *details* of the work must match the Applicant's Resume.\n"
+        "RULES:\n"
+        "1. Ground the proposal in the Applicant Resume AND the Past Relevant Proposals. "
+        "Both are real evidence of the applicant's work — use specific details, numbers, "
+        "and technologies from either source where relevant to the job.\n"
+        "2. Do NOT invent experience that does not appear in either the resume or the past proposals.\n"
         "3. Keep it professional, conversational, and under 4 short paragraphs.\n"
-        "4. Avoid generic buzzwords. Be specific and genuine.\n"
+        "4. Avoid generic buzzwords. Be specific and reference real project details.\n"
         "5. End with a clear call to action.\n\n"
         "Job Description:\n{job_description}\n\n"
         "Applicant Resume:\n{resume_text}\n\n"
-        "Past Relevant Proposals (for inspiration):\n{past_proposals_text}"
+        "Past Relevant Proposals (real past work — use these details):\n{past_proposals_text}"
         "{feedback_section}\n\n"
         "Proposal:"
     )

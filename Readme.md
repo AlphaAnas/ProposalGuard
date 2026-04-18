@@ -31,6 +31,11 @@ pip install -r requirements.txt
 ```bash
 GOOGLE_API_KEY=your_google_api_key
 CHROMA_DB_PATH=./chroma_db  
+GOOGLE_API_KEY=<your key>
+CHROMA_DB_PATH=./chroma_db  
+LANGSMITH_API_KEY=<your key>
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT="ProposalGuard"
 ``` 
 ### Run the pipeline 
 Run the following command from root directory   

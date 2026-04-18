@@ -1,0 +1,7 @@
+Hi, I'd love to help you build your machine learning pipeline. 
+I recently delivered an end-to-end ML system for a fintech 
+startup where I trained a fraud detection model using scikit-learn 
+and XGBoost on a dataset of over 2 million transactions, 
+achieving a 97% AUC score. I built the full pipeline — 
+data ingestion, feature engineering, model training, and a 
+REST API with FastAPI to serve predictions in under 50ms. The entire system was containerized with Docker and deployed on AWS SageMaker for auto-scaling. I have strong experience with Python, pandas, and MLflow for experiment tracking, and I always document models thoroughly so your team can own and iterate on them long after the engagement ends. I'd love to learn more about your dataset and target use case — happy to jump on a quick call to discuss scope.
