@@ -1,1 +1,32 @@
-Hello! Your project is right in my wheelhouse. I recently built a full-stack SaaS application for a B2B client using React, Node.js, and PostgreSQL. I implemented JWT-based authentication with refresh token rotation, role-based access control for three user tiers, and a Stripe billing integration with webhooks for subscription management. The app went from zero to 300 paying users within the first month of launch. I follow clean architecture principles, write comprehensive unit and integration tests with Jest, and use CI/CD via GitHub Actions to ensure nothing breaks in production. I'm meticulous about security — all inputs are validated and sanitized, and I conduct regular dependency audits. I can take your project from design mockups to a fully deployed, production-grade application.
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I can help you build your full-stack product end-to-end with a strong focus on clean architecture, security, and reliable delivery.
+
+How I would handle this project:
+- Confirm scope, user roles, and critical flows.
+- Build frontend and backend in parallel milestones.
+- Implement authentication, role permissions, and secure API patterns.
+- Integrate payments/subscriptions if needed.
+- Add tests and deployment pipeline for smooth releases.
+
+What I bring:
+- Experience with React/Next.js, Node.js/FastAPI, PostgreSQL, and Docker.
+- Production experience with auth, billing, and admin dashboards.
+- Strong documentation and handoff practices.
+
+What you can expect:
+- Weekly progress demos.
+- Structured commits and readable codebase.
+- Fast response to feedback and change requests.
+
+If you share your feature priorities and target launch date, I can send a milestone plan with estimated timeline and cost.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan

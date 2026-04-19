@@ -1,1 +1,32 @@
-Hi there, I would love to help you build your frontend application. I recently developed a highly responsive, SEO-optimized e-commerce dashboard using Next.js, TypeScript, and Tailwind CSS. I integrated Stripe for secure payment processing and used React Query for seamless state management. I am meticulous about pixel-perfect UI and ensuring the application achieves a 90+ Lighthouse score across all metrics. Let's discuss how I can bring your design to life.
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I reviewed your frontend project and I can help you build a clean, fast, and fully responsive web app that matches your design and works smoothly across desktop and mobile.
+
+How I would approach your project:
+- Convert your design/screens into reusable React components.
+- Build responsive layouts first so every page works on all breakpoints.
+- Add proper state handling, API integration, and loading/error states.
+- Optimize performance, accessibility, and SEO basics.
+- Test before delivery and share clear deployment instructions.
+
+Why I am a good fit:
+- Strong experience with React, Next.js, TypeScript, and Tailwind CSS.
+- I focus on pixel-accurate UI and clean component structure.
+- I communicate progress daily and deliver in milestones so you can review early.
+
+What you can expect from me:
+- Professional code quality and readable file structure.
+- Fast turnaround on feedback/revisions.
+- A stable final handoff that your team can maintain easily.
+
+If you share your design files and priority pages, I can propose a realistic timeline and start immediately.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan

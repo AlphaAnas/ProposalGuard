@@ -1,1 +1,33 @@
-Hi there! I specialize in data engineering and would be a great fit for your pipeline project. I recently designed and built an ETL pipeline for a retail client that ingested raw sales data from five different sources — CSV files, REST APIs, and a legacy SQL database — transformed and deduplicated the records using Apache Spark, and loaded clean data into a Snowflake data warehouse on a daily schedule managed by Apache Airflow. The pipeline reduced manual reporting effort by 80% and enabled the analytics team to build real-time Power BI dashboards. I have deep experience with Python, dbt for data transformation, and infrastructure-as-code with Terraform. I take data quality seriously — every pipeline I build includes automated validation checks and alerting so you know immediately if something goes wrong upstream.
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I can help you build a dependable data pipeline that turns raw data into clean, analysis-ready tables your team can trust.
+
+My plan for your data project:
+- Review all input sources and define a consistent schema.
+- Build ingestion jobs for APIs/files/databases.
+- Add transformation and deduplication logic.
+- Create validation checks and failure alerts.
+- Deliver scheduled workflows and documentation.
+
+Technical experience:
+- Python-based ETL/ELT pipelines.
+- SQL modeling and warehouse design.
+- Orchestration with tools like Airflow.
+- Data quality checks and monitoring.
+
+How I work with clients:
+- Clear milestones and regular updates.
+- Early sample outputs for quick feedback.
+- Handover docs so your team can maintain and extend the pipeline.
+
+If you share your data sources, refresh frequency, and desired outputs, I can provide a practical implementation timeline.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan

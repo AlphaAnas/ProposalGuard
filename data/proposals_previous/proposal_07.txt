@@ -1,1 +1,32 @@
-Hey! This project sounds exciting and I have direct experience with this type of work. I recently built a mobile application for a healthcare startup using React Native and Expo, targeting both iOS and Android from a single codebase. The app included real-time push notifications via Firebase Cloud Messaging, offline-first data sync with WatermelonDB, and integration with a FHIR-compliant REST API. I worked closely with the client's UI/UX designer to implement smooth animations using React Native Reanimated, and the app achieved a 4.8-star rating on the App Store within its first week. I write clean, modular code and provide detailed documentation so your in-house team can maintain the app confidently. I'd love to discuss your project requirements and share my portfolio of past mobile apps.
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I would love to help you build your mobile app and deliver a polished experience on both Android and iOS.
+
+How I can support your project:
+- Convert your app idea/screens into a clear feature roadmap.
+- Build core screens and navigation with clean architecture.
+- Integrate API, authentication, notifications, and offline handling if needed.
+- Optimize performance for mid-range devices.
+- Test key user flows before release.
+
+Relevant background:
+- Mobile development with React Native/Expo.
+- Experience with real-time updates, push notifications, and API integration.
+- Focus on smooth UI behavior and maintainable code.
+
+Work process:
+- Milestone-based delivery so you can review every stage.
+- Frequent communication and quick iteration on feedback.
+- Final handoff with build and deployment notes.
+
+Please share your feature list (MVP vs nice-to-have) and timeline, and I can send a detailed execution plan.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan
