@@ -12,6 +12,9 @@ env/*
 
 # Vector Database local storage
 chroma_db_data/
+.langraph_api/*
+.langraph_api
+*.pckl
 
 # Python Cache
 __pycache__/

@@ -1,15 +1,21 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
+import os
+# from langchain_google_genai import ChatGoogleGenerativeAI
+from groq import Groq
 from langchain_core.prompts import PromptTemplate
 from src.state import GraphState
 from src.config import Config
 
 
-# Initialize Gemini once at module level
-_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    temperature=0.7,
-    api_key=Config.GOOGLE_API_KEY,
-)
+# # Initialize Gemini once at module level (re-enable when ready)
+# _llm = ChatGoogleGenerativeAI(
+#     model="gemini-2.5-flash-lite",
+#     temperature=0.7,
+#     api_key=Config.GOOGLE_API_KEY,
+# )
+
+# Using Groq llama for now
+_GROQ_MODEL = "openai/gpt-oss-120b"
+_groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 
 def generate_proposal(state: GraphState) -> dict:
@@ -18,14 +24,14 @@ def generate_proposal(state: GraphState) -> dict:
     retry = state.get("retry_count", 0)
     feedback = state.get("human_feedback", None)
 
-    print(f"[Generate] Drafting proposal with Gemini (attempt #{retry + 1})")
+    print(f"[Generate] Drafting proposal with Groq llama (attempt #{retry + 1})")
     if feedback:
         print(f"[Generate] Incorporating feedback: {feedback}")
 
     # Distinguish between resume and past proposals in the context
     resume_content = context[0] if context else "No resume available."
     past_proposals = context[1:] if len(context) > 1 else []
-    
+
     past_proposals_text = (
         "\n\n---\n\n".join(past_proposals) if past_proposals else "No past proposals found."
     )
@@ -57,17 +63,33 @@ def generate_proposal(state: GraphState) -> dict:
         "Proposal:"
     )
 
-    chain = prompt | _llm
-    response = chain.invoke({
-        "job_description": job_description,
-        "resume_text": resume_content,
-        "past_proposals_text": past_proposals_text,
-        "feedback_section": feedback_section,
-    })
+    filled_prompt = prompt.format(
+        job_description=job_description,
+        resume_text=resume_content,
+        past_proposals_text=past_proposals_text,
+        feedback_section=feedback_section,
+    )
 
-    print(f"[Generate] Proposal generated ({len(response.content)} chars)")
+    # # LangChain chain (re-enable with Gemini when ready)
+    # chain = prompt | _llm
+    # response = chain.invoke({
+    #     "job_description": job_description,
+    #     "resume_text": resume_content,
+    #     "past_proposals_text": past_proposals_text,
+    #     "feedback_section": feedback_section,
+    # })
+    # proposal_text = response.content
+
+    response = _groq_client.chat.completions.create(
+        model=_GROQ_MODEL,
+        temperature=0.7,
+        messages=[{"role": "user", "content": filled_prompt}],
+    )
+    proposal_text = response.choices[0].message.content.strip()
+
+    print(f"[Generate] Proposal generated ({len(proposal_text)} chars)")
 
     return {
-        "draft_proposal": response.content,
+        "draft_proposal": proposal_text,
         "status": "draft",
     }

@@ -7,7 +7,6 @@ import re
 from typing import Optional
 
 from groq import Groq
-from openai import OpenAI
 from pydantic import BaseModel
 
 from src.state import GraphState
@@ -15,7 +14,7 @@ from src.state import GraphState
 # ---------------------------------------------------------------------------
 # Model configuration
 # ---------------------------------------------------------------------------
-MODEL_ID = "llama-3.1-70b-versatile"
+MODEL_ID = "openai/gpt-oss-20b"
 
 SYSTEM_PROMPT = (
     "You are a structured reasoning engine. Follow instructions exactly. "
@@ -29,13 +28,8 @@ SYSTEM_PROMPT = (
 # ---------------------------------------------------------------------------
 _groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# OpenAI-compatible client pointed at Groq for embeddings
-_embed_client = OpenAI(
-    api_key=os.environ.get("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
-)
-
-EMBED_MODEL = "text-embedding-3-small"
+# Groq does not support embeddings — always use local deterministic approximation
+# (see _local_embedding_fallback below)
 
 
 # ---------------------------------------------------------------------------
@@ -179,14 +173,16 @@ def token_count(text: str) -> int:
 
 
 # ---------------------------------------------------------------------------
-# Cosine similarity via Groq embeddings
+# Semantic similarity via sentence-transformers (industry standard)
 # ---------------------------------------------------------------------------
+from sentence_transformers import SentenceTransformer
+
+# all-MiniLM-L6-v2: lightweight (80 MB), fast, high quality — standard choice
+_embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+
 def _get_embedding(text: str) -> list[float]:
-    response = _embed_client.embeddings.create(
-        model=EMBED_MODEL,
-        input=text,
-    )
-    return response.data[0].embedding
+    return _embed_model.encode(text, normalize_embeddings=True).tolist()
 
 
 def cosine_similarity(text_a: str, text_b: str) -> float:

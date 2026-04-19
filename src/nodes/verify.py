@@ -1,14 +1,21 @@
 import json
-from langchain_google_genai import ChatGoogleGenerativeAI
+import os
+# from langchain_google_genai import ChatGoogleGenerativeAI
+from groq import Groq
 from langchain_core.prompts import PromptTemplate
 from src.state import GraphState
 from src.config import Config
 
-_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    temperature=0.0,
-    api_key=Config.GOOGLE_API_KEY,
-)
+# # Initialize Gemini (re-enable when ready)
+# _llm = ChatGoogleGenerativeAI(
+#     model="gemini-2.5-flash",
+#     temperature=0.0,
+#     api_key=Config.GOOGLE_API_KEY,
+# )
+
+# Using Groq llama for now
+_GROQ_MODEL = "llama-3.1-8b-instant"
+_groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 _EXTRACT_CLAIMS_PROMPT = PromptTemplate.from_template(
     "Extract every specific factual claim the proposal makes about the applicant "
@@ -49,9 +56,13 @@ def verify_grounding(state: GraphState) -> dict:
 
     print("[Verify] Step 1 — Extracting claims from draft proposal...")
     try:
-        extract_chain = _EXTRACT_CLAIMS_PROMPT | _llm
-        claims_response = extract_chain.invoke({"proposal": proposal})
-        raw = claims_response.content.strip()
+        extract_prompt = _EXTRACT_CLAIMS_PROMPT.format(proposal=proposal)
+        response = _groq_client.chat.completions.create(
+            model=_GROQ_MODEL,
+            temperature=0.0,
+            messages=[{"role": "user", "content": extract_prompt}],
+        )
+        raw = response.choices[0].message.content.strip()
         # Strip markdown code fences if present
         if raw.startswith("```"):
             raw = raw.split("```")[1]
@@ -70,12 +81,16 @@ def verify_grounding(state: GraphState) -> dict:
 
     print("[Verify] Step 2 — Verifying claims against resume + past proposals...")
     try:
-        verify_chain = _VERIFY_CLAIMS_PROMPT | _llm
-        verify_response = verify_chain.invoke({
-            "source_text": source_text,
-            "claims_json": json.dumps(claims),
-        })
-        raw2 = verify_response.content.strip()
+        verify_prompt = _VERIFY_CLAIMS_PROMPT.format(
+            source_text=source_text,
+            claims_json=json.dumps(claims),
+        )
+        response2 = _groq_client.chat.completions.create(
+            model=_GROQ_MODEL,
+            temperature=0.0,
+            messages=[{"role": "user", "content": verify_prompt}],
+        )
+        raw2 = response2.choices[0].message.content.strip()
         if raw2.startswith("```"):
             raw2 = raw2.split("```")[1]
             if raw2.startswith("json"):
