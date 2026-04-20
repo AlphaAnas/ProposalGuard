@@ -1,19 +1,8 @@
 import os
-# from langchain_google_genai import ChatGoogleGenerativeAI
 from groq import Groq
 from langchain_core.prompts import PromptTemplate
 from src.state import GraphState
-from src.config import Config
 
-
-# # Initialize Gemini once at module level (re-enable when ready)
-# _llm = ChatGoogleGenerativeAI(
-#     model="gemini-2.5-flash-lite",
-#     temperature=0.7,
-#     api_key=Config.GOOGLE_API_KEY,
-# )
-
-# Using Groq llama for now
 _GROQ_MODEL = "openai/gpt-oss-120b"
 _groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
@@ -24,7 +13,7 @@ def generate_proposal(state: GraphState) -> dict:
     retry = state.get("retry_count", 0)
     feedback = state.get("human_feedback", None)
 
-    print(f"[Generate] Drafting proposal with Groq llama (attempt #{retry + 1})")
+    print(f"[Generate] Drafting proposal with Groq (attempt #{retry + 1})")
     if feedback:
         print(f"[Generate] Incorporating feedback: {feedback}")
 
@@ -36,10 +25,7 @@ def generate_proposal(state: GraphState) -> dict:
         "\n\n---\n\n".join(past_proposals) if past_proposals else "No past proposals found."
     )
 
-    if past_proposals:
-        print(f"[SAMPLE] {past_proposals[0][:120]}...")
-
-    print(f"[Generate] context size: {len(context)} (1 resume + {len(past_proposals)} past proposals)")
+    print(f"[Generate] Context: 1 resume + {len(past_proposals)} past proposals")
 
     feedback_section = (
         f"\n\nPrevious feedback to incorporate:\n{feedback}" if feedback else ""
@@ -70,16 +56,6 @@ def generate_proposal(state: GraphState) -> dict:
         feedback_section=feedback_section,
     )
 
-    # # LangChain chain (re-enable with Gemini when ready)
-    # chain = prompt | _llm
-    # response = chain.invoke({
-    #     "job_description": job_description,
-    #     "resume_text": resume_content,
-    #     "past_proposals_text": past_proposals_text,
-    #     "feedback_section": feedback_section,
-    # })
-    # proposal_text = response.content
-
     response = _groq_client.chat.completions.create(
         model=_GROQ_MODEL,
         temperature=0.7,
@@ -87,9 +63,28 @@ def generate_proposal(state: GraphState) -> dict:
     )
     proposal_text = response.choices[0].message.content.strip()
 
+    # Collect token usage if available
+    usage = response.usage
+    token_info = {}
+    if usage:
+        token_info = {
+            "prompt_tokens": usage.prompt_tokens,
+            "completion_tokens": usage.completion_tokens,
+            "total_tokens": usage.total_tokens,
+        }
+
     print(f"[Generate] Proposal generated ({len(proposal_text)} chars)")
 
     return {
         "draft_proposal": proposal_text,
+        "generation_metadata": {
+            "model": _GROQ_MODEL,
+            "attempt": retry + 1,
+            "feedback_used": feedback,
+            "prompt_length": len(filled_prompt),
+            "proposal_length": len(proposal_text),
+            "past_proposals_used": len(past_proposals),
+            "tokens": token_info,
+        },
         "status": "draft",
     }
