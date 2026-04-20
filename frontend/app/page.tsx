@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { startPipeline, resumePipeline } from "@/lib/api";
+import {
+  startPipeline,
+  resumePipeline,
+  uploadResume,
+  uploadProposal,
+} from "@/lib/api";
 import { PipelineStatus, NodeEvent, InterruptData } from "@/types";
 import PipelineStepper from "@/components/PipelineStepper";
 import NodeResults from "@/components/NodeResults";
@@ -14,10 +19,23 @@ export default function Home() {
   const [nodeEvents, setNodeEvents] = useState<NodeEvent[]>([]);
   const [completedNodes, setCompletedNodes] = useState<string[]>([]);
   const [activeNode, setActiveNode] = useState<string | null>(null);
-  const [interruptData, setInterruptData] = useState<InterruptData | null>(null);
+  const [interruptData, setInterruptData] = useState<InterruptData | null>(
+    null,
+  );
   const [finalResult, setFinalResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Upload state
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeStatus, setResumeStatus] = useState<
+    "idle" | "uploading" | "done" | "error"
+  >("idle");
+  const [proposalFiles, setProposalFiles] = useState<File[]>([]);
+  const [proposalStatus, setProposalStatus] = useState<
+    "idle" | "uploading" | "done" | "error"
+  >("idle");
+  const [uploadedProposalCount, setUploadedProposalCount] = useState(0);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -25,10 +43,38 @@ export default function Home() {
     }, 100);
   };
 
+  const handleResumeUpload = async () => {
+    if (!resumeFile) return;
+    setResumeStatus("uploading");
+    try {
+      await uploadResume(resumeFile);
+      setResumeStatus("done");
+    } catch (e: any) {
+      setError(e.message);
+      setResumeStatus("error");
+    }
+  };
+
+  const handleProposalUpload = async () => {
+    if (proposalFiles.length === 0) return;
+    setProposalStatus("uploading");
+    try {
+      let count = 0;
+      for (const file of proposalFiles) {
+        await uploadProposal(file);
+        count++;
+      }
+      setUploadedProposalCount(count);
+      setProposalStatus("done");
+    } catch (e: any) {
+      setError(e.message);
+      setProposalStatus("error");
+    }
+  };
+
   const handleGenerate = async () => {
     if (!jobDescription.trim()) return;
 
-    // Reset state
     setStatus("streaming");
     setNodeEvents([]);
     setCompletedNodes([]);
@@ -37,17 +83,26 @@ export default function Home() {
     setFinalResult(null);
     setError(null);
 
-    const nodeOrder = ["retrieve", "generate", "verify", "bias_check", "human_review"];
+    const nodeOrder = [
+      "retrieve",
+      "generate",
+      "verify",
+      "bias_check",
+      "human_review",
+    ];
 
     await startPipeline(jobDescription, {
       onThreadId: (id) => setThreadId(id),
 
       onNodeComplete: (node, data) => {
-        const event: NodeEvent = { node: node as any, data, timestamp: Date.now() };
+        const event: NodeEvent = {
+          node: node as any,
+          data,
+          timestamp: Date.now(),
+        };
         setNodeEvents((prev) => [...prev, event]);
         setCompletedNodes((prev) => [...new Set([...prev, node])]);
 
-        // Set next node as active
         const currentIndex = nodeOrder.indexOf(node);
         if (currentIndex < nodeOrder.length - 1) {
           setActiveNode(nodeOrder[currentIndex + 1]);
@@ -98,16 +153,8 @@ export default function Home() {
     setStatus("resuming");
     try {
       const result = await resumePipeline(threadId, "reject", feedback);
-      // After rejection, the pipeline loops back — show the result
-      // In a full implementation, we'd re-stream. For now, show the final state.
-      if (result.status === "approved") {
-        setFinalResult(result);
-        setStatus("complete");
-      } else {
-        // Pipeline still going — for now show as complete
-        setFinalResult(result);
-        setStatus("complete");
-      }
+      setFinalResult(result);
+      setStatus("complete");
       scrollToBottom();
     } catch (e: any) {
       setError(e.message);
@@ -163,11 +210,101 @@ export default function Home() {
                 Proposal<span className="text-cyan-400">Guard</span>
               </h2>
               <p className="text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
-                Generate personalized proposals grounded in your real experience.
-                Every claim verified. Bias detected. Human approved.
+                Generate personalized proposals grounded in your real
+                experience. Every claim verified. Bias detected. Human approved.
               </p>
             </div>
 
+            {/* Upload Section */}
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 mb-4">
+              <p className="text-xs font-mono text-[var(--text-dim)] uppercase tracking-wider mb-4">
+                Upload Your Data
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Resume Upload */}
+                <div className="p-4 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">📄</span>
+                    <span className="text-sm font-semibold">Resume</span>
+                    {resumeStatus === "done" && (
+                      <span className="text-[10px] font-mono text-emerald-400 ml-auto px-2 py-0.5 rounded-full bg-emerald-400/10 border border-emerald-400/20">
+                        Uploaded
+                      </span>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept=".txt"
+                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                    className="block w-full text-xs text-[var(--text-dim)] file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-[var(--border)] file:text-xs file:font-mono file:text-[var(--text-secondary)] file:bg-[var(--bg-elevated)] file:cursor-pointer hover:file:border-[var(--border-hover)]"
+                  />
+                  {resumeFile && resumeStatus !== "done" && (
+                    <button
+                      onClick={handleResumeUpload}
+                      disabled={resumeStatus === "uploading"}
+                      className="mt-2 w-full py-1.5 text-xs font-mono rounded bg-cyan-500/20 text-cyan-400 border border-cyan-400/20 hover:bg-cyan-500/30 transition-colors disabled:opacity-50"
+                    >
+                      {resumeStatus === "uploading"
+                        ? "Uploading..."
+                        : "Upload Resume"}
+                    </button>
+                  )}
+                  {resumeStatus === "error" && (
+                    <p className="text-[10px] text-red-400 mt-1">
+                      Upload failed. Try again.
+                    </p>
+                  )}
+                </div>
+
+                {/* Proposals Upload */}
+                <div className="p-4 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">📝</span>
+                    <span className="text-sm font-semibold">
+                      Past Proposals
+                    </span>
+                    {proposalStatus === "done" && (
+                      <span className="text-[10px] font-mono text-emerald-400 ml-auto px-2 py-0.5 rounded-full bg-emerald-400/10 border border-emerald-400/20">
+                        {uploadedProposalCount} uploaded
+                      </span>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept=".txt"
+                    multiple
+                    onChange={(e) =>
+                      setProposalFiles(Array.from(e.target.files || []))
+                    }
+                    className="block w-full text-xs text-[var(--text-dim)] file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-[var(--border)] file:text-xs file:font-mono file:text-[var(--text-secondary)] file:bg-[var(--bg-elevated)] file:cursor-pointer hover:file:border-[var(--border-hover)]"
+                  />
+                  {proposalFiles.length > 0 && proposalStatus !== "done" && (
+                    <button
+                      onClick={handleProposalUpload}
+                      disabled={proposalStatus === "uploading"}
+                      className="mt-2 w-full py-1.5 text-xs font-mono rounded bg-purple-500/20 text-purple-400 border border-purple-400/20 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
+                    >
+                      {proposalStatus === "uploading"
+                        ? "Uploading..."
+                        : `Upload ${proposalFiles.length} Proposal${proposalFiles.length > 1 ? "s" : ""}`}
+                    </button>
+                  )}
+                  {proposalStatus === "error" && (
+                    <p className="text-[10px] text-red-400 mt-1">
+                      Upload failed. Try again.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-[10px] text-[var(--text-dim)] mt-3 text-center">
+                .txt files only · Resume is saved on the server · Proposals are
+                added to the vector database
+              </p>
+            </div>
+
+            {/* Job Description Input */}
             <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6">
               <label className="block text-xs font-mono text-[var(--text-dim)] uppercase tracking-wider mb-3">
                 Paste the job posting
@@ -194,8 +331,17 @@ export default function Home() {
                   Pipeline Steps
                 </p>
                 <div className="flex justify-center gap-3 text-center">
-                  {["🔍 Retrieve", "✍️ Generate", "✅ Verify", "⚖️ Bias Check", "👤 Review"].map((step) => (
-                    <span key={step} className="text-[10px] font-mono text-[var(--text-dim)] px-2 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border)]">
+                  {[
+                    "🔍 Retrieve",
+                    "✍️ Generate",
+                    "✅ Verify",
+                    "⚖️ Bias Check",
+                    "👤 Review",
+                  ].map((step) => (
+                    <span
+                      key={step}
+                      className="text-[10px] font-mono text-[var(--text-dim)] px-2 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border)]"
+                    >
                       {step}
                     </span>
                   ))}
@@ -208,28 +354,33 @@ export default function Home() {
         {/* ============================================ */}
         {/* STREAMING / REVIEWING / RESUMING */}
         {/* ============================================ */}
-        {(status === "streaming" || status === "reviewing" || status === "resuming") && (
+        {(status === "streaming" ||
+          status === "reviewing" ||
+          status === "resuming") && (
           <div className="space-y-6 animate-fade-in-up">
-            {/* Pipeline stepper */}
-            <PipelineStepper completedNodes={completedNodes} activeNode={activeNode} />
+            <PipelineStepper
+              completedNodes={completedNodes}
+              activeNode={activeNode}
+            />
 
-            {/* Active shimmer while streaming */}
             {status === "streaming" && activeNode && (
               <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                   <span className="text-sm text-[var(--text-secondary)]">
-                    Running <span className="font-mono text-cyan-400">{activeNode}</span>...
+                    Running{" "}
+                    <span className="font-mono text-cyan-400">
+                      {activeNode}
+                    </span>
+                    ...
                   </span>
                 </div>
                 <div className="h-3 w-2/3 rounded shimmer" />
               </div>
             )}
 
-            {/* Node results */}
             <NodeResults events={nodeEvents} />
 
-            {/* Review panel */}
             {status === "reviewing" && interruptData && (
               <ReviewPanel
                 data={interruptData}
@@ -239,11 +390,12 @@ export default function Home() {
               />
             )}
 
-            {/* Resuming state */}
             {status === "resuming" && (
               <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center">
                 <div className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse mx-auto mb-3" />
-                <p className="text-sm text-[var(--text-secondary)]">Processing your decision...</p>
+                <p className="text-sm text-[var(--text-secondary)]">
+                  Processing your decision...
+                </p>
               </div>
             )}
 
@@ -256,22 +408,28 @@ export default function Home() {
         {/* ============================================ */}
         {status === "complete" && finalResult && (
           <div className="space-y-6 animate-fade-in-up max-w-3xl mx-auto">
-            {/* Success header */}
             <div className="text-center py-6">
               <div className="w-16 h-16 rounded-full bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">✓</span>
               </div>
               <h2 className="text-2xl font-bold mb-2">Proposal Approved</h2>
               <p className="text-sm text-[var(--text-secondary)]">
-                Grounding score: <span className="font-mono text-emerald-400">{((finalResult.grounding_score || 0) * 100).toFixed(0)}%</span>
-                {" · "}Retries: <span className="font-mono">{finalResult.retry_count || 0}</span>
+                Grounding score:{" "}
+                <span className="font-mono text-emerald-400">
+                  {((finalResult.grounding_score || 0) * 100).toFixed(0)}%
+                </span>
+                {" · "}Retries:{" "}
+                <span className="font-mono">
+                  {finalResult.retry_count || 0}
+                </span>
               </p>
             </div>
 
-            {/* Final proposal */}
             <div className="rounded-xl border border-emerald-400/20 bg-[var(--bg-card)] overflow-hidden">
               <div className="px-6 py-3 bg-emerald-400/5 border-b border-emerald-400/20">
-                <p className="text-xs font-mono text-emerald-400 uppercase tracking-wider">Final Proposal</p>
+                <p className="text-xs font-mono text-emerald-400 uppercase tracking-wider">
+                  Final Proposal
+                </p>
               </div>
               <div className="px-6 py-5">
                 <p className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
@@ -280,9 +438,9 @@ export default function Home() {
               </div>
               <div className="px-6 py-3 border-t border-[var(--border)] flex items-center gap-3">
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(finalResult.proposal);
-                  }}
+                  onClick={() =>
+                    navigator.clipboard.writeText(finalResult.proposal)
+                  }
                   className="text-xs font-mono text-[var(--text-dim)] hover:text-cyan-400 transition-colors px-3 py-1.5 rounded border border-[var(--border)] hover:border-cyan-400/30"
                 >
                   Copy to Clipboard
@@ -296,7 +454,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Pipeline summary */}
             {nodeEvents.length > 0 && (
               <details className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] overflow-hidden">
                 <summary className="px-6 py-3 cursor-pointer text-xs font-mono text-[var(--text-dim)] uppercase tracking-wider hover:text-[var(--text-secondary)] transition-colors">
@@ -317,8 +474,12 @@ export default function Home() {
           <div className="max-w-2xl mx-auto animate-fade-in-up">
             <div className="rounded-xl border border-red-400/20 bg-red-400/5 p-6 text-center">
               <span className="text-3xl mb-3 block">⚠️</span>
-              <h3 className="text-lg font-bold text-red-400 mb-2">Pipeline Error</h3>
-              <p className="text-sm text-[var(--text-secondary)] mb-4">{error}</p>
+              <h3 className="text-lg font-bold text-red-400 mb-2">
+                Pipeline Error
+              </h3>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">
+                {error}
+              </p>
               <button
                 onClick={handleReset}
                 className="text-xs font-mono text-red-400 px-4 py-2 rounded border border-red-400/30 hover:bg-red-400/10 transition-colors"

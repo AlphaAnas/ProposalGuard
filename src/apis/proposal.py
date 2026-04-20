@@ -212,3 +212,24 @@ async def upload_proposal(file: UploadFile = File(...)):
         return {"status": "success", "message": f"Ingested {file.filename}", "document_id": doc_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/proposals/upload_resume")
+async def upload_resume(file: UploadFile = File(...)):
+    if not file.filename.endswith(".txt"):
+        raise HTTPException(status_code=400, detail="Only .txt files supported.")
+    try:
+        content = await file.read()
+        text_content = content.decode("utf-8")
+        if not text_content.strip():
+            raise HTTPException(status_code=400, detail="File is empty.")
+        
+        # Save to the data/resumes directory
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        resume_path = os.path.join(base_dir, "data", "resumes", "user_resume.txt")
+        os.makedirs(os.path.dirname(resume_path), exist_ok=True)
+        with open(resume_path, "w", encoding="utf-8") as f:
+            f.write(text_content)
+        
+        return {"status": "success", "message": f"Resume saved: {file.filename}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

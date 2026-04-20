@@ -10,7 +10,7 @@ interface SSECallbacks {
 
 export async function startPipeline(
   jobDescription: string,
-  callbacks: SSECallbacks
+  callbacks: SSECallbacks,
 ) {
   const response = await fetch(`${API_BASE}/proposals/generate`, {
     method: "POST",
@@ -33,9 +33,8 @@ export async function startPipeline(
 
     buffer += decoder.decode(value, { stream: true });
 
-    // Parse SSE events from buffer
     const lines = buffer.split("\n");
-    buffer = lines.pop() || ""; // Keep incomplete line in buffer
+    buffer = lines.pop() || "";
 
     let currentEvent = "";
     for (const line of lines) {
@@ -44,7 +43,6 @@ export async function startPipeline(
       } else if (line.startsWith("data: ") && currentEvent) {
         try {
           const data = JSON.parse(line.slice(6));
-
           switch (currentEvent) {
             case "thread_id":
               callbacks.onThreadId(data.thread_id);
@@ -74,7 +72,7 @@ export async function startPipeline(
 export async function resumePipeline(
   threadId: string,
   action: "approve" | "reject",
-  feedback?: string
+  feedback?: string,
 ) {
   const response = await fetch(`${API_BASE}/proposals/${threadId}/resume`, {
     method: "POST",
@@ -85,6 +83,44 @@ export async function resumePipeline(
   if (!response.ok) {
     const err = await response.json();
     throw new Error(err.detail || "Failed to resume pipeline");
+  }
+
+  return response.json();
+}
+
+export async function uploadResume(
+  file: File,
+): Promise<{ status: string; message: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_BASE}/proposals/upload_resume`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.detail || "Failed to upload resume");
+  }
+
+  return response.json();
+}
+
+export async function uploadProposal(
+  file: File,
+): Promise<{ status: string; message: string; document_id: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_BASE}/proposals/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.detail || "Failed to upload proposal");
   }
 
   return response.json();
