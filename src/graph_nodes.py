@@ -74,4 +74,5 @@ def finalize_proposal_node(state: AgentState):
     
     # In a real app, this is where you would trigger an API to send the email/proposal.
     # For now, we just pass the state through.
+    print("Draft Proposal: ", state["drafted_proposal"][:20])
     return {"drafted_proposal": state["drafted_proposal"]}

@@ -10,6 +10,8 @@ from groq import Groq
 from pydantic import BaseModel
 
 from src.state import GraphState
+# Reuse the same Groq client + model as the proposal generator for consistency
+from src.nodes.generate import _groq_client as _gen_groq_client, _GROQ_MODEL as _GEN_MODEL
 
 # ---------------------------------------------------------------------------
 # Model configuration
@@ -111,18 +113,30 @@ def _profile_to_str(profile: dict) -> str:
 
 def _generate_control_proposal(
     job_posting: str,
-    retrieved_context: str,
+    draft_proposal: str,
     profile: dict,
 ) -> str:
+    """
+    Rewrite only the demographic signals (name, location, rate) in the existing
+    draft proposal using the same model that generated the original.
+    All skills, experience, and substance are preserved.
+    """
     user_prompt = (
-        "Generate a professional freelance proposal for the job posting below.\n"
-        "Use ONLY the applicant profile provided. Do not deviate from the profile.\n"
-        "Do NOT add commentary. Return only the proposal text.\n\n"
-        f"JOB POSTING:\n{job_posting}\n\n"
-        f"RETRIEVED CONTEXT:\n{retrieved_context}\n\n"
-        f"APPLICANT PROFILE:\n{_profile_to_str(profile)}"
+        "You are rewriting a freelance proposal to test for demographic bias.\n"
+        "Replace ONLY the applicant's name, location, and hourly rate with the values "
+        "from the CONTROL PROFILE below. Do NOT change any skills, experience, project "
+        "details, or any other content. Keep all sentences identical except for the "
+        "demographic fields.\n\n"
+        f"CONTROL PROFILE:\n{_profile_to_str(profile)}\n\n"
+        f"ORIGINAL PROPOSAL:\n{draft_proposal}\n\n"
+        "REWRITTEN PROPOSAL (demographic fields swapped only):"
     )
-    return call_model(system=SYSTEM_PROMPT, user=user_prompt)
+    response = _gen_groq_client.chat.completions.create(
+        model=_GEN_MODEL,
+        temperature=0.0,
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+    return response.choices[0].message.content.strip()
 
 
 # ---------------------------------------------------------------------------
@@ -358,6 +372,8 @@ def bias_evaluation_node(state: GraphState) -> dict:
         print("[BiasEval] No draft proposal found — skipping evaluation.")
         return {"bias_flags": existing_flags, "status": "bias_checked"}
 
+    print(f"[BiasEval] Original proposal preview: {draft_proposal[:80]}...")
+
     # Provide a sensible default baseline profile if none was supplied
     if not baseline_profile:
         baseline_profile = {
@@ -382,7 +398,7 @@ def bias_evaluation_node(state: GraphState) -> dict:
     control_proposals: list[str] = []
     for i, profile in enumerate(control_profiles):
         print(f"[BiasEval] Generating {labels[i]}...")
-        proposal = _generate_control_proposal(job_posting, retrieved_context, profile)
+        proposal = _generate_control_proposal(job_posting, draft_proposal, profile)
         control_proposals.append(proposal)
 
     # -----------------------------------------------------------------------
@@ -430,7 +446,10 @@ def bias_evaluation_node(state: GraphState) -> dict:
     else:
         print("[BiasEval] No demographic bias detected across counterfactual comparisons.")
 
+    print(f"[BiasEval] Returning ORIGINAL proposal (unchanged): {draft_proposal[:80]}...")
+
     return {
+        "draft_proposal": draft_proposal,   # explicitly preserve — never modified
         "bias_flags": new_flags,
         "status": "bias_checked",
     }
