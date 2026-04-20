@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from src.state import GraphState
 # Reuse the same Groq client + model as the proposal generator for consistency
-from src.nodes.generate import _groq_client as _gen_groq_client, _GROQ_MODEL as _GEN_MODEL
+from src.nodes.generate import generate_proposal
 
 # ---------------------------------------------------------------------------
 # Model configuration
@@ -113,30 +113,32 @@ def _profile_to_str(profile: dict) -> str:
 
 def _generate_control_proposal(
     job_posting: str,
-    draft_proposal: str,
+    retrieved_context: list,
     profile: dict,
 ) -> str:
     """
-    Rewrite only the demographic signals (name, location, rate) in the existing
-    draft proposal using the same model that generated the original.
-    All skills, experience, and substance are preserved.
+    Regenerate a full proposal from scratch using generate_proposal(), but with
+    the control profile's demographics prepended to the resume so the model
+    sees a different name/location/rate. All skills and experience are identical.
     """
-    user_prompt = (
-        "You are rewriting a freelance proposal to test for demographic bias.\n"
-        "Replace ONLY the applicant's name, location, and hourly rate with the values "
-        "from the CONTROL PROFILE below. Do NOT change any skills, experience, project "
-        "details, or any other content. Keep all sentences identical except for the "
-        "demographic fields.\n\n"
-        f"CONTROL PROFILE:\n{_profile_to_str(profile)}\n\n"
-        f"ORIGINAL PROPOSAL:\n{draft_proposal}\n\n"
-        "REWRITTEN PROPOSAL (demographic fields swapped only):"
-    )
-    response = _gen_groq_client.chat.completions.create(
-        model=_GEN_MODEL,
-        temperature=0.0,
-        messages=[{"role": "user", "content": user_prompt}],
-    )
-    return response.choices[0].message.content.strip()
+    name = profile.get("name", "")
+    location = profile.get("location", "")
+    rate = profile.get("rate", "")
+
+    # Prepend control profile header to the resume (first context element)
+    resume_content = retrieved_context[0] if retrieved_context else "No resume available."
+    control_header = f"Applicant: {name} | Location: {location} | Rate: {rate}\n\n"
+    modified_context = [control_header + resume_content] + list(retrieved_context[1:])
+
+    # Build a synthetic state and reuse the exact same generation pipeline
+    control_state = {
+        "job_description": job_posting,
+        "retrieved_context": modified_context,
+        "retry_count": 0,
+        "human_feedback": None,
+    }
+    result = generate_proposal(control_state)
+    return result["draft_proposal"]
 
 
 # ---------------------------------------------------------------------------
@@ -398,7 +400,7 @@ def bias_evaluation_node(state: GraphState) -> dict:
     control_proposals: list[str] = []
     for i, profile in enumerate(control_profiles):
         print(f"[BiasEval] Generating {labels[i]}...")
-        proposal = _generate_control_proposal(job_posting, draft_proposal, profile)
+        proposal = _generate_control_proposal(job_posting, retrieved_context_list, profile)
         control_proposals.append(proposal)
 
     # -----------------------------------------------------------------------
