@@ -3,8 +3,13 @@ from groq import Groq
 from langchain_core.prompts import PromptTemplate
 from src.state import GraphState
 
-_GROQ_MODEL = "openai/gpt-oss-120b"
-_groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+import os
+from anthropic import Anthropic
+from langchain_core.prompts import PromptTemplate
+from src.state import GraphState
+
+_client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+_MODEL = "claude-sonnet-4-20250514"
 
 
 def generate_proposal(state: GraphState) -> dict:
@@ -30,6 +35,16 @@ def generate_proposal(state: GraphState) -> dict:
     feedback_section = (
         f"\n\nPrevious feedback to incorporate:\n{feedback}" if feedback else ""
     )
+
+# Add grounding failures to the prompt
+    unsupported = state.get("unsupported_claims", [])
+    if unsupported:
+        claims_list = "\n".join(f"- {c}" for c in unsupported)
+        feedback_section += (
+            f"\n\nWARNING — These claims from your previous attempt were flagged as "
+            f"HALLUCINATED (not found in the resume or past proposals). "
+            f"Do NOT repeat them:\n{claims_list}"
+        )
 
     prompt = PromptTemplate.from_template(
         "You are writing a freelance proposal on behalf of the applicant below. "
@@ -60,29 +75,27 @@ def generate_proposal(state: GraphState) -> dict:
         feedback_section=feedback_section,
     )
 
-    response = _groq_client.chat.completions.create(
-        model=_GROQ_MODEL,
+    response = _client.messages.create(
+        model=_MODEL,
+        max_tokens=1024,
         temperature=0.7,
         messages=[{"role": "user", "content": filled_prompt}],
     )
-    proposal_text = response.choices[0].message.content.strip()
-
-    # Collect token usage if available
+    proposal_text = response.content[0].text.strip()
     usage = response.usage
-    token_info = {}
-    if usage:
-        token_info = {
-            "prompt_tokens": usage.prompt_tokens,
-            "completion_tokens": usage.completion_tokens,
-            "total_tokens": usage.total_tokens,
-        }
+    token_info = {
+        "prompt_tokens": usage.input_tokens,
+        "completion_tokens": usage.output_tokens,
+        "total_tokens": usage.input_tokens + usage.output_tokens,
+    }
+
 
     print(f"[Generate] Proposal generated ({len(proposal_text)} chars)")
 
     return {
         "draft_proposal": proposal_text,
         "generation_metadata": {
-            "model": _GROQ_MODEL,
+            "model": _MODEL,
             "attempt": retry + 1,
             "feedback_used": feedback,
             "prompt_length": len(filled_prompt),
