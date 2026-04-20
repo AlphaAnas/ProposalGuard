@@ -6,7 +6,7 @@ from src.nodes.verify import verify_grounding
 from src.nodes.bias_check import check_bias
 from src.nodes.human_review import human_review
 
-GROUNDING_THRESHOLD = 0.5
+GROUNDING_THRESHOLD = 0.8
 MAX_RETRIES = 3
 
 
