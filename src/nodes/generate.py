@@ -32,21 +32,25 @@ def generate_proposal(state: GraphState) -> dict:
     )
 
     prompt = PromptTemplate.from_template(
-        "You are an expert freelance proposal writer. Your task is to write a highly "
-        "converting, concise cover letter / proposal for the job below.\n\n"
-        "RULES:\n"
-        "1. Ground the proposal in the Applicant Resume AND the Past Relevant Proposals. "
-        "Both are real evidence of the applicant's work — use specific details, numbers, "
-        "and technologies from either source where relevant to the job.\n"
-        "2. Do NOT invent experience that does not appear in either the resume or the past proposals.\n"
-        "3. Keep it professional, conversational, and under 4 short paragraphs.\n"
-        "4. Avoid generic buzzwords. Be specific and reference real project details.\n"
-        "5. End with a clear call to action.\n\n"
-        "Job Description:\n{job_description}\n\n"
+        "You are writing a freelance proposal on behalf of the applicant below. "
+        "Your job is to win the contract by being specific, credible, and human.\n\n"
+        "STRICT RULES:\n"
+        "1. Every claim you make MUST come from either the Resume or the Past Proposals below. "
+        "If a skill, project, metric, or technology is not mentioned in those documents, DO NOT include it. "
+        "Hallucinating experience is worse than being vague.\n"
+        "2. Reference specific projects by name, specific metrics with numbers, and specific technologies. "
+        "\"I have experience with databases\" is bad. \"I designed a PostgreSQL schema handling 50M+ daily transactions at Stripe\" is good.\n"
+        "3. Open with a line that proves you read the job posting — reference a specific requirement or challenge they mentioned.\n"
+        "4. Keep it under 4 short paragraphs. No headers, no bullet points, no \"Dear Hiring Manager.\" "
+        "Write like a confident professional sending a message, not filling out a form.\n"
+        "5. End with a concrete next step: what you'd do in the first 48 hours, or a specific question about their project.\n"
+        "6. Match the energy of the job posting. If they're casual, be casual. If they're formal, be formal.\n"
+        "7. Never use these words: \"passionate\", \"leverage\", \"synergy\", \"utilize\", \"cutting-edge\", \"seasoned\".\n\n"
+        "Job Posting:\n{job_description}\n\n"
         "Applicant Resume:\n{resume_text}\n\n"
-        "Past Relevant Proposals (real past work — use these details):\n{past_proposals_text}"
+        "Past Relevant Proposals (real work the applicant has done — reference these):\n{past_proposals_text}\n"
         "{feedback_section}\n\n"
-        "Proposal:"
+        "Write the proposal now. No preamble, no \"Here's the proposal\" — just the proposal text itself."
     )
 
     filled_prompt = prompt.format(
