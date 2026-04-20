@@ -1,0 +1,33 @@
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I can help you improve your DevOps setup so deployments are faster, safer, and easier for your team to manage.
+
+What I can deliver:
+- CI/CD pipeline setup or optimization.
+- Containerization and environment standardization.
+- Infrastructure setup with clear version-controlled configuration.
+- Monitoring, alerting, and log visibility improvements.
+- Safer release strategies (staged rollout/rollback readiness).
+
+My experience includes:
+- Cloud deployment workflows and container orchestration.
+- Git-based release automation.
+- Performance and cost optimization for running services.
+- Security-first infrastructure practices.
+
+How I execute:
+- Audit current setup and identify immediate wins.
+- Implement high-impact fixes first.
+- Document everything for handoff and future maintenance.
+
+If you share your current stack, cloud provider, and pain points, I can map out a phased plan with realistic timelines.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan

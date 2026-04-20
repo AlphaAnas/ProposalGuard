@@ -1,0 +1,33 @@
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I can help you build a dependable data pipeline that turns raw data into clean, analysis-ready tables your team can trust.
+
+My plan for your data project:
+- Review all input sources and define a consistent schema.
+- Build ingestion jobs for APIs/files/databases.
+- Add transformation and deduplication logic.
+- Create validation checks and failure alerts.
+- Deliver scheduled workflows and documentation.
+
+Technical experience:
+- Python-based ETL/ELT pipelines.
+- SQL modeling and warehouse design.
+- Orchestration with tools like Airflow.
+- Data quality checks and monitoring.
+
+How I work with clients:
+- Clear milestones and regular updates.
+- Early sample outputs for quick feedback.
+- Handover docs so your team can maintain and extend the pipeline.
+
+If you share your data sources, refresh frequency, and desired outputs, I can provide a practical implementation timeline.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan

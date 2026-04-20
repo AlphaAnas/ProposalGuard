@@ -1,83 +1,54 @@
-expected 20xx
+Muhammad Anas
+Karachi, Paksitan | anas.carter@email.com | github.com/anas | linkedin.com/in/anas
 
-Cumulative GPA: 3.5/4.0
-
-Spring 20xx
-
-Robotics
-Machine Vision
-
-Control Systems
-Machines and Society
-
-4/xx - 6/xx
-
-1/xx - 3/xx
-
-6/xx - 9/xx
-
-Social Chair, Sigma Delta Tau Sorority
-
-20xx - present
-
-20xx - present
-
-Design:
-Programming:
-Fabrication:
-Languages:
-
-SolidWorks
-
-JULIA ENG-BACHELOR
-563 Salvatierra Walk . Stanford, CA 94305 . (650) 723-0000 . SUld@stanford.edu
-
-OBJECTIVE
-To obtain a hands-on position developing and optimizing robots and automated production systems
+SUMMARY
+Full-stack ML engineer with 5+ years of experience building and deploying production machine learning systems, data pipelines, and AI-powered applications. Skilled across the full lifecycle from data ingestion and model training to API deployment and cloud infrastructure. Strong focus on responsible AI, system reliability, and clean, maintainable code.
 
 EDUCATION
-Stanford University, Stanford, CA - B.S. in Mechanical Engineering
-Major GPA: 3.7/4.0
-
-Stanford in Berlin, Germany - studied German language, history and culture
+B.S. in Computer Science, University of Karachi, Pakistan
+GPA: 3.8/4.0 | Graduated May 2020
 
 RELEVANT COURSEWORK
-Mechatronics
-Product Design
+Machine Learning, Deep Learning, Distributed Systems, Databases, Algorithms, Natural Language Processing
 
-COURSE PROJECTS
-Integrated Compliant Arm-Wrist Robot
-. Worked on a team to simulate and program an existing robot with 6 degrees of freedom
-. Empirically determined the acceptable gripping pressures for objects of differing shape, weight,
-and surface texture
-. Successfully trained robot to pick up and manipulate a delicate wineglass without damaging it
-
-Throw & Catch Robots
-. Trained twin robots to repeatedly throw and catch a tennis ball
-. Worked on a three-person team to simulate and develop the motion and control algorithms
-. Led the team in rendering and fine-tuning the algorithms into C++
+TECHNICAL SKILLS
+Languages:     Python, TypeScript, JavaScript, SQL, Bash
+ML / AI:       PyTorch, scikit-learn, XGBoost, LightGBM, Hugging Face Transformers, LangChain, LangGraph
+Data:          pandas, NumPy, Apache Spark, dbt, Apache Airflow, Snowflake, PostgreSQL
+Backend:       FastAPI, Node.js, REST APIs, GraphQL, WebSockets
+Frontend:      React, Next.js, Tailwind CSS
+Infra / Cloud: AWS (EC2, S3, SageMaker, EKS), Docker, Kubernetes, Terraform, GitHub Actions, Prometheus, Grafana
+VectorDBs:     ChromaDB, Pinecone, FAISS
+Tools:         MLflow, Weights & Biases, Jupyter, Git
 
 EXPERIENCE
-Engineering Intern, Siemens AG, Munich, Germany
-. Provided drafting and engineering support at a plant manufacturing drives and motors
-. Updated and maintained electro-mechanical drawings and documentation
-. Adhered to best-practice protocols for document control
-. Observed factory operations employing precision robots and machine vision
 
-ACTIVITIES
+Senior ML Engineer — Stripe, San Francisco, CA (Jan 2023 – Present)
+. Built a real-time fraud detection system using XGBoost and LightGBM on 50M+ daily transactions, reducing fraudulent chargebacks by 34% within 3 months of deployment.
+. Designed and maintained the full ML pipeline: feature engineering with pandas/Spark, model training tracked via MLflow, and a FastAPI inference service serving predictions at <40ms p99 latency.
+. Containerized all services with Docker, deployed on AWS SageMaker for auto-scaling, and set up Prometheus + Grafana dashboards for model drift monitoring.
+. Integrated RAG-based anomaly explanations using LangChain + ChromaDB to surface interpretable alerts for the fraud ops team.
 
-. Led committee that planned and organized monthly events for all 50 women in the house
-. Organized a successful benefit dinner that exceeded fundraising goal (>$5000)
+ML Engineer — Scale AI, San Francisco, CA (Jul 2020 – Dec 2022)
+. Developed and shipped 3 NLP models for text classification and named entity recognition using Hugging Face Transformers, improving label accuracy by 22% over baseline.
+. Built ETL pipelines with Apache Airflow and dbt to ingest and transform annotation data into a Snowflake warehouse, replacing a brittle set of manual scripts.
+. Wrote REST API wrappers in FastAPI to expose model inference endpoints consumed by internal tooling and external clients.
+. Mentored 2 junior engineers and led weekly ML reading group sessions.
 
-Tour Guide, Stanford University
-. Polished public speaking skills while conducting three campus tours per week
+Software Engineering Intern — Salesforce, San Francisco, CA (May 2019 – Aug 2019)
+. Built a React + Node.js internal dashboard for visualizing CRM data trends, adopted by the data analytics team for weekly reporting.
+. Wrote unit and integration tests with Jest achieving 85% coverage on all new features.
 
-SKILLS
+PROJECTS
 
-Matlab, C/C++, Java, HTML
-CNC mill, lathe, brazing
-German (conversational)
+ProposalGuard (Personal Project)
+. Built an agentic AI system using LangGraph to draft personalized freelance proposals grounded in a user's resume and past proposals stored in ChromaDB.
+. Implemented human-in-the-loop review, bias detection guardrails, and a FastAPI backend; deployed locally with Docker.
 
-PROFESSIONAL AFFILIATIONS
-American Society of Mechanical Engineers . Tau Beta Pi Engineering Honor Society .
-Society of Women Engineers
+Open-Source LLM Benchmarking Tool (GitHub)
+. Developed a CLI tool in Python to benchmark LLM response quality across multiple providers (OpenAI, Gemini, Anthropic) using configurable evaluation rubrics.
+. Gained 400+ GitHub stars within 2 months of release.
+
+CERTIFICATIONS
+AWS Certified Solutions Architect — Associate
+AWS Certified Machine Learning — Specialty

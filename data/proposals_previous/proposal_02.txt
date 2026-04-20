@@ -1,1 +1,32 @@
-Hello, I specialize in building agentic AI systems and would be a perfect fit for your project. For my last client, I designed a multi-agent workflow using LangGraph and Python to automate their customer support pipeline. I implemented a Retrieval-Augmented Generation (RAG) architecture using Chroma DB for local vector storage and Google Gemini for text generation, reducing their support ticket resolution time by 40%. I prioritize building responsible AI with strict guardrails against hallucinations.
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I read your job post for an AI assistant/automation workflow, and I can help you build a reliable system that is practical for real business use, not just a demo.
+
+My plan for your project:
+- Understand your use case, expected inputs, and desired outputs.
+- Build the workflow with clear node-by-node logic (retrieval, reasoning, validation, response).
+- Add guardrails to reduce hallucinations and unsafe outputs.
+- Connect a vector store for grounded answers from your internal documents.
+- Add logging and evaluation so we can improve quality over time.
+
+Relevant experience:
+- Built AI workflows with Python, LangGraph, and RAG pipelines.
+- Implemented document retrieval systems with chunking, embeddings, and source citation.
+- Deployed production-ready APIs with monitoring and fallback handling.
+
+How I work:
+- I break delivery into milestones so you can test each stage early.
+- I document setup and architecture for easy handover.
+- I provide post-delivery support for fixes and tuning.
+
+If you share your data sources and success criteria, I can send a clear scope, timeline, and fixed milestone plan.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan

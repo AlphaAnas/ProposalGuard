@@ -6,7 +6,7 @@ from src.nodes.verify import verify_grounding
 from src.nodes.bias_check import check_bias
 from src.nodes.human_review import human_review
 
-GROUNDING_THRESHOLD = 0.7
+GROUNDING_THRESHOLD = 0.5
 MAX_RETRIES = 3
 
 
@@ -64,7 +64,7 @@ workflow.add_conditional_edges("verify", route_after_verification, {
 
 workflow.add_conditional_edges("bias_check", route_after_bias, {
     "clean": "human_review",
-    "flagged": "increment_retry",
+    "flagged": "human_review",  # bias flags are surfaced to reviewer, not regenerated
 })
 
 workflow.add_conditional_edges("increment_retry", route_after_retry, {
