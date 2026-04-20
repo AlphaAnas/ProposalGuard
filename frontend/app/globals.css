@@ -1,6 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap");
-
 @import "tailwindcss";
+
+@source "../components";
+@source "../lib";
+@source "../types";
+
+@theme {
+  --font-sans: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
 
 :root {
   --bg-primary: #06080c;
@@ -75,15 +83,15 @@ body {
   }
 }
 
-.animate-fade-in-up {
+@utility animate-fade-in-up {
   animation: fadeInUp 0.4s ease-out forwards;
 }
 
-.animate-pulse-glow {
+@utility animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.shimmer {
+@utility shimmer {
   background: linear-gradient(
     90deg,
     var(--bg-elevated) 25%,
@@ -92,26 +100,6 @@ body {
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-}
-
-/* Node accent colors */
-.node-retrieve {
-  --accent: var(--cyan);
-}
-.node-generate {
-  --accent: var(--blue);
-}
-.node-verify {
-  --accent: var(--amber);
-}
-.node-bias_check {
-  --accent: var(--purple);
-}
-.node-human_review {
-  --accent: var(--green);
-}
-.node-increment_retry {
-  --accent: var(--orange);
 }
 
 /* Score bar */

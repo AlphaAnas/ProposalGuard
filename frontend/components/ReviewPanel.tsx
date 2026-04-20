@@ -10,12 +10,22 @@ interface ReviewPanelProps {
   isLoading: boolean;
 }
 
-export default function ReviewPanel({ data, onApprove, onReject, isLoading }: ReviewPanelProps) {
+export default function ReviewPanel({
+  data,
+  onApprove,
+  onReject,
+  isLoading,
+}: ReviewPanelProps) {
   const [feedback, setFeedback] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
 
   const score = data.grounding_score;
-  const scoreColor = score >= 0.7 ? "text-emerald-400" : score >= 0.5 ? "text-amber-400" : "text-red-400";
+  const scoreColor =
+    score >= 0.7
+      ? "text-emerald-400"
+      : score >= 0.5
+        ? "text-amber-400"
+        : "text-red-400";
 
   return (
     <div className="rounded-xl border-2 border-emerald-400/30 bg-[var(--bg-card)] overflow-hidden animate-fade-in-up">
@@ -24,20 +34,31 @@ export default function ReviewPanel({ data, onApprove, onReject, isLoading }: Re
         <div className="flex items-center gap-3">
           <span className="text-2xl">👤</span>
           <div>
-            <h3 className="text-lg font-bold text-[var(--text-primary)]">Human Review Required</h3>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">
+              Human Review Required
+            </h3>
             <p className="text-xs text-[var(--text-secondary)]">
-              The pipeline is paused. Review the proposal and approve or request changes.
+              The pipeline is paused. Review the proposal and approve or request
+              changes.
             </p>
           </div>
           <div className="ml-auto flex items-center gap-3">
             <div className="text-right">
-              <p className="text-[10px] font-mono text-[var(--text-dim)] uppercase">Grounding</p>
-              <p className={`text-xl font-bold font-mono ${scoreColor}`}>{(score * 100).toFixed(0)}%</p>
+              <p className="text-[10px] font-mono text-[var(--text-dim)] uppercase">
+                Grounding
+              </p>
+              <p className={`text-xl font-bold font-mono ${scoreColor}`}>
+                {(score * 100).toFixed(0)}%
+              </p>
             </div>
             {data.retry_count > 0 && (
               <div className="text-right">
-                <p className="text-[10px] font-mono text-[var(--text-dim)] uppercase">Attempt</p>
-                <p className="text-xl font-bold font-mono text-[var(--text-secondary)]">#{data.retry_count + 1}</p>
+                <p className="text-[10px] font-mono text-[var(--text-dim)] uppercase">
+                  Attempt
+                </p>
+                <p className="text-xl font-bold font-mono text-[var(--text-secondary)]">
+                  #{data.retry_count + 1}
+                </p>
               </div>
             )}
           </div>
@@ -46,7 +67,9 @@ export default function ReviewPanel({ data, onApprove, onReject, isLoading }: Re
 
       {/* Proposal text */}
       <div className="px-6 py-5">
-        <p className="text-xs font-mono text-[var(--text-dim)] uppercase tracking-wider mb-3">Generated Proposal</p>
+        <p className="text-xs font-mono text-[var(--text-dim)] uppercase tracking-wider mb-3">
+          Generated Proposal
+        </p>
         <div className="p-5 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)] max-h-80 overflow-y-auto">
           <p className="text-sm text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
             {data.proposal}
@@ -57,10 +80,15 @@ export default function ReviewPanel({ data, onApprove, onReject, isLoading }: Re
       {/* Bias flags if any */}
       {data.bias_flags.length > 0 && (
         <div className="px-6 pb-4">
-          <p className="text-xs font-mono text-purple-400 uppercase tracking-wider mb-2">Bias Flags</p>
+          <p className="text-xs font-mono text-purple-400 uppercase tracking-wider mb-2">
+            Bias Flags
+          </p>
           <div className="space-y-1">
             {data.bias_flags.map((flag, i) => (
-              <p key={i} className="text-xs text-[var(--text-secondary)] p-2 rounded bg-purple-400/5 border border-purple-400/10">
+              <p
+                key={i}
+                className="text-xs text-[var(--text-secondary)] p-2 rounded bg-purple-400/5 border border-purple-400/10"
+              >
                 {flag}
               </p>
             ))}
@@ -73,11 +101,10 @@ export default function ReviewPanel({ data, onApprove, onReject, isLoading }: Re
         {!showRejectForm ? (
           <div className="flex items-center gap-3">
             <button
-              onClick={onApprove}
-              disabled={isLoading}
-              className="flex-1 py-3 px-6 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => navigator.clipboard.writeText(data.proposal)}
+              className="flex-1 py-3 px-6 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm transition-all"
             >
-              {isLoading ? "Processing..." : "✓ Approve Proposal"}
+              📋 Copy to Clipboard
             </button>
             <button
               onClick={() => setShowRejectForm(true)}
@@ -89,7 +116,9 @@ export default function ReviewPanel({ data, onApprove, onReject, isLoading }: Re
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs font-mono text-[var(--text-dim)] uppercase">What should be changed?</p>
+            <p className="text-xs font-mono text-[var(--text-dim)] uppercase">
+              What should be changed?
+            </p>
             <textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
