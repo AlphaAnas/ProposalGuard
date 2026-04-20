@@ -1,19 +1,9 @@
 import json
 import os
-# from langchain_google_genai import ChatGoogleGenerativeAI
 from groq import Groq
 from langchain_core.prompts import PromptTemplate
 from src.state import GraphState
-from src.config import Config
 
-# # Initialize Gemini (re-enable when ready)
-# _llm = ChatGoogleGenerativeAI(
-#     model="gemini-2.5-flash",
-#     temperature=0.0,
-#     api_key=Config.GOOGLE_API_KEY,
-# )
-
-# Using Groq llama for now
 _GROQ_MODEL = "llama-3.1-8b-instant"
 _groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
@@ -38,13 +28,28 @@ _VERIFY_CLAIMS_PROMPT = PromptTemplate.from_template(
 )
 
 
+def _strip_code_fences(raw: str) -> str:
+    """Remove markdown code fences from LLM output."""
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    return raw.strip()
+
+
 def verify_grounding(state: GraphState) -> dict:
     proposal = state.get("draft_proposal", "")
     context = state.get("retrieved_context", [])
 
     if not proposal:
         print("[Verify] No proposal to verify — score 0.0")
-        return {"grounding_score": 0.0, "status": "verifying"}
+        return {
+            "grounding_score": 0.0,
+            "extracted_claims": [],
+            "supported_claims": [],
+            "unsupported_claims": [],
+            "status": "verifying",
+        }
 
     # Build the source text from resume + past proposals
     source_parts = []
@@ -54,6 +59,7 @@ def verify_grounding(state: GraphState) -> dict:
         source_parts.append(f"[PAST PROPOSAL {i}]\n{past}")
     source_text = "\n\n".join(source_parts) if source_parts else "No source documents available."
 
+    # Step 1: Extract claims
     print("[Verify] Step 1 — Extracting claims from draft proposal...")
     try:
         extract_prompt = _EXTRACT_CLAIMS_PROMPT.format(proposal=proposal)
@@ -62,23 +68,31 @@ def verify_grounding(state: GraphState) -> dict:
             temperature=0.0,
             messages=[{"role": "user", "content": extract_prompt}],
         )
-        raw = response.choices[0].message.content.strip()
-        # Strip markdown code fences if present
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        claims: list[str] = json.loads(raw.strip())
+        raw = _strip_code_fences(response.choices[0].message.content.strip())
+        claims = json.loads(raw)
     except Exception as e:
         print(f"[Verify] Failed to extract claims: {e} — defaulting score to 0.5")
-        return {"grounding_score": 0.5, "status": "verifying"}
+        return {
+            "grounding_score": 0.5,
+            "extracted_claims": [],
+            "supported_claims": [],
+            "unsupported_claims": [],
+            "status": "verifying",
+        }
 
     if not claims:
         print("[Verify] No claims extracted — treating as fully grounded (score 1.0)")
-        return {"grounding_score": 1.0, "status": "verifying"}
+        return {
+            "grounding_score": 1.0,
+            "extracted_claims": [],
+            "supported_claims": [],
+            "unsupported_claims": [],
+            "status": "verifying",
+        }
 
-    print(f"[Verify] Extracted {len(claims)} claim(s): {claims}")
+    print(f"[Verify] Extracted {len(claims)} claim(s)")
 
+    # Step 2: Verify claims against source documents
     print("[Verify] Step 2 — Verifying claims against resume + past proposals...")
     try:
         verify_prompt = _VERIFY_CLAIMS_PROMPT.format(
@@ -90,28 +104,31 @@ def verify_grounding(state: GraphState) -> dict:
             temperature=0.0,
             messages=[{"role": "user", "content": verify_prompt}],
         )
-        raw2 = response2.choices[0].message.content.strip()
-        if raw2.startswith("```"):
-            raw2 = raw2.split("```")[1]
-            if raw2.startswith("json"):
-                raw2 = raw2[4:]
-        result = json.loads(raw2.strip())
-        supported: list[str] = result.get("supported", [])
-        unsupported: list[str] = result.get("unsupported", [])
+        raw2 = _strip_code_fences(response2.choices[0].message.content.strip())
+        result = json.loads(raw2)
+        supported = result.get("supported", [])
+        unsupported = result.get("unsupported", [])
     except Exception as e:
         print(f"[Verify] Failed to verify claims: {e} — defaulting score to 0.5")
-        return {"grounding_score": 0.5, "status": "verifying"}
+        return {
+            "grounding_score": 0.5,
+            "extracted_claims": claims,
+            "supported_claims": [],
+            "unsupported_claims": [],
+            "status": "verifying",
+        }
 
     total = len(supported) + len(unsupported)
     score = round(len(supported) / total, 2) if total > 0 else 1.0
 
     print(f"[Verify] Grounding score: {score}  ({len(supported)} supported / {total} total)")
     if unsupported:
-        print(f"[Verify] Unsupported (hallucinated) claims: {unsupported}")
-    else:
-        print("[Verify] All claims are grounded in source documents.")
+        print(f"[Verify] Hallucinated claims: {unsupported}")
 
     return {
         "grounding_score": score,
+        "extracted_claims": claims,
+        "supported_claims": supported,
+        "unsupported_claims": unsupported,
         "status": "verifying",
     }
