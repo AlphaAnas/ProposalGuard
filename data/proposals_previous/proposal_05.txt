@@ -1,0 +1,32 @@
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I can help you build your full-stack product end-to-end with a strong focus on clean architecture, security, and reliable delivery.
+
+How I would handle this project:
+- Confirm scope, user roles, and critical flows.
+- Build frontend and backend in parallel milestones.
+- Implement authentication, role permissions, and secure API patterns.
+- Integrate payments/subscriptions if needed.
+- Add tests and deployment pipeline for smooth releases.
+
+What I bring:
+- Experience with React/Next.js, Node.js/FastAPI, PostgreSQL, and Docker.
+- Production experience with auth, billing, and admin dashboards.
+- Strong documentation and handoff practices.
+
+What you can expect:
+- Weekly progress demos.
+- Structured commits and readable codebase.
+- Fast response to feedback and change requests.
+
+If you share your feature priorities and target launch date, I can send a milestone plan with estimated timeline and cost.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan

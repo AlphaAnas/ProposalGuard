@@ -1,83 +1,50 @@
-expected 20xx
+HASSAN IQBAL
+Full-stack developer building production web apps and AI systems for founders.
+Karachi, Pakistan · hassaniqbal19343@gmail.com · https://on.contra.com/TG7Lzh
 
-Cumulative GPA: 3.5/4.0
 
-Spring 20xx
+WHAT I DO
 
-Robotics
-Machine Vision
+I'm the technical partner non-technical founders call when they need a real product, not a prototype. I build and ship on Next.js, TypeScript, and modern AI stacks (Claude, OpenAI, RAG). I'm strong at going from a Figma or a Bolt/Replit prototype to a production app you can actually run a business on.
 
-Control Systems
-Machines and Society
 
-4/xx - 6/xx
+RECENT WORK
 
-1/xx - 3/xx
+Prsoo — AI coaching platform, shipped in 4 weeks
+Built on Claude API with streaming, session state, multi-turn context. The founder was non-technical. I owned every technical decision end-to-end.
 
-6/xx - 9/xx
+NestLink — Real estate SaaS rebuild, 15 weeks, 3-person team
+Took a Bolt.new prototype and rebuilt it as a production platform. Multi-tenant, Stripe billing, 4-role permissions. I managed the dev + QA team in Linear.
 
-Social Chair, Sigma Delta Tau Sorority
+Chronicler Labs — Lead Frontend Engineer (a16z-backed AI startup)
+Built WhatsApp AI agents alongside ex-Meta and ex-WhatsApp engineers. System held 1,000+ concurrent users with zero downtime during a viral launch (300K+ impressions overnight). Promoted twice, "Exceeds Expectations" reviews.
 
-20xx - present
+Morti — Mortgage platform with AI document retrieval
+Built the RAG pipeline for parsing complex financial PDFs and answering borrower questions with grounded responses.
 
-20xx - present
 
-Design:
-Programming:
-Fabrication:
-Languages:
+CREDIBILITY AT A GLANCE
 
-SolidWorks
+• Top 1% on Contra with a perfect 5.0 rating across 50+ shipped projects
+• 3.5+ years of freelance experience, primarily US and European founders
+• Lead Frontend Engineer at Chronicler Labs (a16z-backed)
+• Final-year CS student at Habib University (3.80 CGPA, Dean's List)
 
-JULIA ENG-BACHELOR
-563 Salvatierra Walk . Stanford, CA 94305 . (650) 723-0000 . SUld@stanford.edu
 
-OBJECTIVE
-To obtain a hands-on position developing and optimizing robots and automated production systems
+HOW I WORK
 
-EDUCATION
-Stanford University, Stanford, CA - B.S. in Mechanical Engineering
-Major GPA: 3.7/4.0
+I'm direct. I ship on milestones, not hours. I communicate in plain English.
 
-Stanford in Berlin, Germany - studied German language, history and culture
+Mitch, who hired me at Prsoo, put it this way: "you stood out as being very articulate/conversational in English and had on-your-feet knowledge of the topics we talked through."
 
-RELEVANT COURSEWORK
-Mechatronics
-Product Design
+I own technical decisions end-to-end so you can focus on your customers, not on reviewing pull requests you don't want to review. And because I'm still building my track record, I genuinely care about the outcome. A bad review actually costs me, something more senior between-jobs folks don't worry about.
 
-COURSE PROJECTS
-Integrated Compliant Arm-Wrist Robot
-. Worked on a team to simulate and program an existing robot with 6 degrees of freedom
-. Empirically determined the acceptable gripping pressures for objects of differing shape, weight,
-and surface texture
-. Successfully trained robot to pick up and manipulate a delicate wineglass without damaging it
 
-Throw & Catch Robots
-. Trained twin robots to repeatedly throw and catch a tennis ball
-. Worked on a three-person team to simulate and develop the motion and control algorithms
-. Led the team in rendering and fine-tuning the algorithms into C++
+STACK
 
-EXPERIENCE
-Engineering Intern, Siemens AG, Munich, Germany
-. Provided drafting and engineering support at a plant manufacturing drives and motors
-. Updated and maintained electro-mechanical drawings and documentation
-. Adhered to best-practice protocols for document control
-. Observed factory operations employing precision robots and machine vision
+Next.js · React · TypeScript · Tailwind · Node.js · PostgreSQL · Supabase · Stripe · Claude API · OpenAI API · RAG (LangGraph, ChromaDB) · Temporal
 
-ACTIVITIES
 
-. Led committee that planned and organized monthly events for all 50 women in the house
-. Organized a successful benefit dinner that exceeded fundraising goal (>$5000)
+HOW TO START A CONVERSATION
 
-Tour Guide, Stanford University
-. Polished public speaking skills while conducting three campus tours per week
-
-SKILLS
-
-Matlab, C/C++, Java, HTML
-CNC mill, lathe, brazing
-German (conversational)
-
-PROFESSIONAL AFFILIATIONS
-American Society of Mechanical Engineers . Tau Beta Pi Engineering Honor Society .
-Society of Women Engineers
+Drop me a note at hassaniqbal19343@gmail.com or through Contra with two things: what you're trying to build, and what the next four weeks should look like. I'll come back with honest thoughts on scope and whether we're a fit.

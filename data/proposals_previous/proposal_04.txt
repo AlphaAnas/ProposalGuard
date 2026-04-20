@@ -1,0 +1,32 @@
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I am interested in helping you build your machine learning pipeline from data preparation to model deployment.
+
+What I can do for your ML project:
+- Audit your data quality and preprocessing flow.
+- Build reproducible training scripts with clear experiment tracking.
+- Evaluate multiple models and report metrics in a simple format.
+- Package the best model for inference (API or batch workflow).
+- Add monitoring hooks for model performance and drift.
+
+My practical experience:
+- End-to-end ML pipelines in Python using pandas, scikit-learn, and XGBoost.
+- Feature engineering and model validation for real-world noisy datasets.
+- Serving models via FastAPI and containerized deployment.
+
+Delivery style:
+- Milestone-based delivery with checkpoints.
+- Clean documentation so your team can retrain and maintain the model.
+- Transparent communication about tradeoffs (accuracy, latency, cost).
+
+Please share your dataset format, prediction target, and preferred deployment environment. I can then provide a precise scope and timeline.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan

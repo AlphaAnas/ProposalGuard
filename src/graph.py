@@ -1,4 +1,5 @@
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import MemorySaver
 from src.state import GraphState
 from src.nodes.retrieve import retrieve_context
 from src.nodes.generate import generate_proposal
@@ -6,7 +7,7 @@ from src.nodes.verify import verify_grounding
 from src.nodes.bias_check import check_bias
 from src.nodes.human_review import human_review
 
-GROUNDING_THRESHOLD = 0.7
+GROUNDING_THRESHOLD = 0.6
 MAX_RETRIES = 3
 
 
@@ -44,6 +45,7 @@ def route_after_retry(state: GraphState) -> str:
         return "force_review"
     return "regenerate"
 
+
 workflow = StateGraph(GraphState)
 
 workflow.add_node("retrieve", retrieve_context)
@@ -64,7 +66,7 @@ workflow.add_conditional_edges("verify", route_after_verification, {
 
 workflow.add_conditional_edges("bias_check", route_after_bias, {
     "clean": "human_review",
-    "flagged": "increment_retry",
+    "flagged": "human_review",
 })
 
 workflow.add_conditional_edges("increment_retry", route_after_retry, {
@@ -77,4 +79,7 @@ workflow.add_conditional_edges("human_review", route_after_human, {
     "rejected": "increment_retry",
 })
 
-graph = workflow.compile()
+# MemorySaver stores graph state at each step so the pipeline
+# can pause at interrupt() and resume later with the same state.
+checkpointer = MemorySaver()
+graph = workflow.compile(checkpointer=checkpointer)
