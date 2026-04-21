@@ -26,9 +26,9 @@ EXPOSE 8000
 
 # 5. Run the application
 # ENTRYPOINT ["uvicorn", "src.app:app", "--port", "8000"]
-# 5. Run the application
-
+#
 ENTRYPOINT ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+
 
 
 
