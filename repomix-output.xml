@@ -1,0 +1,2148 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.github/
+  workflows/
+    proposalguard-AutoDeployTrigger-1b6cdedf-b548-4772-97de-3eee9423e12e.yml
+data/
+  proposals_previous/
+    proposal_01.txt
+    proposal_02.txt
+    proposal_03.txt
+    proposal_04.txt
+    proposal_05.txt
+    proposal_06.txt
+    proposal_07.txt
+    proposal_08.txt
+  resumes/
+    user_resume.txt
+  architecture_diagram.png
+src/
+  apis/
+    __init__.py
+    fetch_vectorDB.py
+    proposal.py
+  nodes/
+    __init__.py
+    bias_check.py
+    generate.py
+    human_review.py
+    retrieve.py
+    verify.py
+  __init__.py
+  app.py
+  config.py
+  graph_nodes.py
+  graph.py
+  main.py
+  state.py
+  vectorStore.py
+tests/
+  test_api_manual.py
+utils/
+  __init__.py
+.gitignore
+check_db_contents.py
+Dockerfile
+langgraph.json
+package.json
+Readme.md
+requirements.txt
+verify_fix.py
+verify_imports.py
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="package.json">
+{
+  "dependencies": {
+    "repomix": "^1.13.1"
+  }
+}
+</file>
+
+<file path=".github/workflows/proposalguard-AutoDeployTrigger-1b6cdedf-b548-4772-97de-3eee9423e12e.yml">
+name: Trigger auto deployment for proposalguard
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ deployment ]
+    paths:
+    - '**'
+    - '.github/workflows/proposalguard-AutoDeployTrigger-1b6cdedf-b548-4772-97de-3eee9423e12e.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.PROPOSALGUARD_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.PROPOSALGUARD_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.PROPOSALGUARD_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}
+          _dockerfilePathKey_: _dockerfilePath_
+          _targetLabelKey_: _targetLabel_
+          registryUrl: proposalguardregistry.azurecr.io
+          registryUsername: ${{ secrets.PROPOSALGUARD_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.PROPOSALGUARD_REGISTRY_PASSWORD }}
+          containerAppName: proposalguard
+          resourceGroup: resource_group_anas
+          imageToBuild: proposalguardregistry.azurecr.io/proposalguard:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+</file>
+
+<file path="src/apis/__init__.py">
+
+</file>
+
+<file path="src/apis/fetch_vectorDB.py">
+
+</file>
+
+<file path="src/nodes/__init__.py">
+
+</file>
+
+<file path="src/__init__.py">
+
+</file>
+
+<file path="src/app.py">
+from fastapi import FastAPI
+from src.apis.proposal import router as proposal_router
+app = FastAPI() 
+
+app.include_router(proposal_router) 
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to ProposalGuard API"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+</file>
+
+<file path="src/vectorStore.py">
+import os
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
+from src.config import Config
+
+class ProposalVectorStore:
+    def __init__(self, collection_name: str = "past_proposals"):
+        """Initializes a LangChain-native ChromaDB client with free local embeddings."""
+        
+        # 1. Initialize the free local embedding model (all-MiniLM-L6-v2)
+        # This will download an ~80MB model to your local machine on the very first run.
+        self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        
+        # 2. Ensure directory exists to prevent path errors
+        os.makedirs(Config.CHROMA_DB_PATH, exist_ok=True)
+        
+        # 3. Initialize the LangChain Chroma integration
+        self.vector_store = Chroma(
+            collection_name=collection_name,
+            embedding_function=self.embeddings,
+            persist_directory=Config.CHROMA_DB_PATH
+        )
+        print(f"✅ LangChain-native Chroma DB ready. Collection '{collection_name}' initialized.")
+
+    def add_proposals(self, texts: list[str], metadatas: list[dict], ids: list[str]):
+        """Adds raw text proposals to the local vector database."""
+        self.vector_store.add_texts(texts=texts, metadatas=metadatas, ids=ids)
+        print(f"✅ Added {len(texts)} proposals to the database.")
+
+    def get_retriever(self, num_results: int = 2):
+        """
+        Returns a standard LangChain retriever object.
+        Pass this directly into your LangGraph nodes!
+        """
+        return self.vector_store.as_retriever(
+            search_type="similarity",
+            search_kwargs={"k": num_results}
+        )
+</file>
+
+<file path="tests/test_api_manual.py">
+import requests
+import json
+import time
+
+def test_health():
+    try:
+        response = requests.get("http://localhost:8000/health")
+        print(f"Health Check: {response.status_code} - {response.json()}")
+        return response.status_code == 200
+    except Exception as e:
+        print(f"Health Check Failed: {e}")
+        return False
+
+def test_generate_proposal():
+    url = "http://localhost:8000/generate_proposal"
+    payload = {
+        "job_description": "We need a Python developer who is good at FastAPI and LangGraph."
+    }
+    headers = {"Content-Type": "application/json"}
+    
+    print(f"Sending request to {url}...")
+    try:
+        response = requests.post(url, data=json.dumps(payload), headers=headers)
+        print(f"Status Code: {response.status_code}")
+        if response.status_code == 200:
+            result = response.json()
+            print("Proposal generated successfully!")
+            print(f"Status: {result.get('status')}")
+            print(f"Grounding Score: {result.get('grounding_score')}")
+            # print(f"Proposal Snippet: {result.get('proposal')[:100]}...")
+            return True
+        else:
+            print(f"Error: {response.text}")
+            return False
+    except Exception as e:
+        print(f"Request failed: {e}")
+        return False
+
+if __name__ == "__main__":
+    # Note: This script assumes the server is already running or will be started
+    if test_health():
+        test_generate_proposal()
+    else:
+        print("Server is not running. Please start it with 'uvicorn src.app:app --reload'")
+</file>
+
+<file path="check_db_contents.py">
+from src.vectorStore import ProposalVectorStore
+from src.config import Config
+import os
+
+def check_db():
+    print(f"Checking DB at {Config.CHROMA_DB_PATH}")
+    if not os.path.exists(Config.CHROMA_DB_PATH):
+        print("DB path does not exist.")
+        return
+
+    try:
+        pv = ProposalVectorStore()
+        # Chroma vector_store doesn't have a direct 'count' in LangChain wrapper easily accessible sometimes
+        # but we can try to get all or search
+        results = pv.vector_store.similarity_search("test", k=10)
+        print(f"Found {len(results)} results for 'test' query.")
+        for i, res in enumerate(results):
+            print(f"Result {i}: {res.page_content[:50]}... Metadata: {res.metadata}")
+            
+        # Try to get underlying collection count if possible
+        count = pv.vector_store._collection.count()
+        print(f"Total documents in collection: {count}")
+    except Exception as e:
+        print(f"Error checking DB: {e}")
+
+if __name__ == "__main__":
+    check_db()
+</file>
+
+<file path="langgraph.json">
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./src/graph.py:graph"
+  },
+  "env": ".env"
+}
+</file>
+
+<file path="verify_fix.py">
+from src.graph import graph
+
+def test_run():
+    print("Starting test run...")
+    initial_state = {
+        "rfp_text": "Need a website for a local bakery.",
+        "status": "starting"
+    }
+    
+    try:
+        # Run the graph
+        # Note: We use stream or invoke. Since it might have human review, 
+        # we just want to see if it reaches the first few nodes without KeyError.
+        for event in graph.stream(initial_state):
+            for node, state in event.items():
+                print(f"Node: {node}")
+                # print(f"State: {state}")
+                if "error" in state:
+                    print(f"Error in state: {state['error']}")
+                    return
+        print("Test run completed successfully!")
+    except KeyError as e:
+        print(f"TEST FAILED: KeyError on {e}")
+    except Exception as e:
+        print(f"TEST FAILED: {type(e).__name__}: {e}")
+
+if __name__ == "__main__":
+    test_run()
+</file>
+
+<file path="verify_imports.py">
+import sys
+import os
+
+# Add the current directory to sys.path to simulate how langgraph-api loads it
+sys.path.append(os.getcwd())
+
+try:
+    from src.graph import graph
+    print("Successfully loaded graph 'agent' from src/graph.py")
+except Exception as e:
+    print(f"Failed to load graph: {e}")
+    import traceback
+    traceback.print_exc()
+    sys.exit(1)
+</file>
+
+<file path="data/proposals_previous/proposal_01.txt">
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I reviewed your frontend project and I can help you build a clean, fast, and fully responsive web app that matches your design and works smoothly across desktop and mobile.
+
+How I would approach your project:
+- Convert your design/screens into reusable React components.
+- Build responsive layouts first so every page works on all breakpoints.
+- Add proper state handling, API integration, and loading/error states.
+- Optimize performance, accessibility, and SEO basics.
+- Test before delivery and share clear deployment instructions.
+
+Why I am a good fit:
+- Strong experience with React, Next.js, TypeScript, and Tailwind CSS.
+- I focus on pixel-accurate UI and clean component structure.
+- I communicate progress daily and deliver in milestones so you can review early.
+
+What you can expect from me:
+- Professional code quality and readable file structure.
+- Fast turnaround on feedback/revisions.
+- A stable final handoff that your team can maintain easily.
+
+If you share your design files and priority pages, I can propose a realistic timeline and start immediately.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan
+</file>
+
+<file path="data/proposals_previous/proposal_02.txt">
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I read your job post for an AI assistant/automation workflow, and I can help you build a reliable system that is practical for real business use, not just a demo.
+
+My plan for your project:
+- Understand your use case, expected inputs, and desired outputs.
+- Build the workflow with clear node-by-node logic (retrieval, reasoning, validation, response).
+- Add guardrails to reduce hallucinations and unsafe outputs.
+- Connect a vector store for grounded answers from your internal documents.
+- Add logging and evaluation so we can improve quality over time.
+
+Relevant experience:
+- Built AI workflows with Python, LangGraph, and RAG pipelines.
+- Implemented document retrieval systems with chunking, embeddings, and source citation.
+- Deployed production-ready APIs with monitoring and fallback handling.
+
+How I work:
+- I break delivery into milestones so you can test each stage early.
+- I document setup and architecture for easy handover.
+- I provide post-delivery support for fixes and tuning.
+
+If you share your data sources and success criteria, I can send a clear scope, timeline, and fixed milestone plan.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan
+</file>
+
+<file path="data/proposals_previous/proposal_03.txt">
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I can help you build a backend that is stable, secure, and easy to scale as your product grows.
+
+What I can deliver for your backend project:
+- API design and implementation with clear endpoint contracts.
+- Database schema design and query optimization.
+- Authentication/authorization and input validation.
+- Error handling, logging, and monitoring setup.
+- API documentation and basic test coverage.
+
+My backend stack experience includes:
+- Python (FastAPI), Node.js, PostgreSQL/MySQL, Redis.
+- Docker-based deployment workflows.
+- WebSocket and async architecture for real-time features.
+
+How I typically execute projects:
+1. Review requirements and define the API/data model.
+2. Implement core modules in milestones.
+3. Run testing and performance checks.
+4. Deliver documentation and deployment steps.
+
+I focus on maintainable code and communication, so you always know project status and next steps.
+
+If you can share your feature list and current architecture (if any), I can send a concrete implementation timeline.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan
+</file>
+
+<file path="data/proposals_previous/proposal_04.txt">
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I am interested in helping you build your machine learning pipeline from data preparation to model deployment.
+
+What I can do for your ML project:
+- Audit your data quality and preprocessing flow.
+- Build reproducible training scripts with clear experiment tracking.
+- Evaluate multiple models and report metrics in a simple format.
+- Package the best model for inference (API or batch workflow).
+- Add monitoring hooks for model performance and drift.
+
+My practical experience:
+- End-to-end ML pipelines in Python using pandas, scikit-learn, and XGBoost.
+- Feature engineering and model validation for real-world noisy datasets.
+- Serving models via FastAPI and containerized deployment.
+
+Delivery style:
+- Milestone-based delivery with checkpoints.
+- Clean documentation so your team can retrain and maintain the model.
+- Transparent communication about tradeoffs (accuracy, latency, cost).
+
+Please share your dataset format, prediction target, and preferred deployment environment. I can then provide a precise scope and timeline.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan
+</file>
+
+<file path="data/proposals_previous/proposal_05.txt">
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I can help you build your full-stack product end-to-end with a strong focus on clean architecture, security, and reliable delivery.
+
+How I would handle this project:
+- Confirm scope, user roles, and critical flows.
+- Build frontend and backend in parallel milestones.
+- Implement authentication, role permissions, and secure API patterns.
+- Integrate payments/subscriptions if needed.
+- Add tests and deployment pipeline for smooth releases.
+
+What I bring:
+- Experience with React/Next.js, Node.js/FastAPI, PostgreSQL, and Docker.
+- Production experience with auth, billing, and admin dashboards.
+- Strong documentation and handoff practices.
+
+What you can expect:
+- Weekly progress demos.
+- Structured commits and readable codebase.
+- Fast response to feedback and change requests.
+
+If you share your feature priorities and target launch date, I can send a milestone plan with estimated timeline and cost.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan
+</file>
+
+<file path="data/proposals_previous/proposal_06.txt">
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I can help you build a dependable data pipeline that turns raw data into clean, analysis-ready tables your team can trust.
+
+My plan for your data project:
+- Review all input sources and define a consistent schema.
+- Build ingestion jobs for APIs/files/databases.
+- Add transformation and deduplication logic.
+- Create validation checks and failure alerts.
+- Deliver scheduled workflows and documentation.
+
+Technical experience:
+- Python-based ETL/ELT pipelines.
+- SQL modeling and warehouse design.
+- Orchestration with tools like Airflow.
+- Data quality checks and monitoring.
+
+How I work with clients:
+- Clear milestones and regular updates.
+- Early sample outputs for quick feedback.
+- Handover docs so your team can maintain and extend the pipeline.
+
+If you share your data sources, refresh frequency, and desired outputs, I can provide a practical implementation timeline.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan
+</file>
+
+<file path="data/proposals_previous/proposal_07.txt">
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I would love to help you build your mobile app and deliver a polished experience on both Android and iOS.
+
+How I can support your project:
+- Convert your app idea/screens into a clear feature roadmap.
+- Build core screens and navigation with clean architecture.
+- Integrate API, authentication, notifications, and offline handling if needed.
+- Optimize performance for mid-range devices.
+- Test key user flows before release.
+
+Relevant background:
+- Mobile development with React Native/Expo.
+- Experience with real-time updates, push notifications, and API integration.
+- Focus on smooth UI behavior and maintainable code.
+
+Work process:
+- Milestone-based delivery so you can review every stage.
+- Frequent communication and quick iteration on feedback.
+- Final handoff with build and deployment notes.
+
+Please share your feature list (MVP vs nice-to-have) and timeline, and I can send a detailed execution plan.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan
+</file>
+
+<file path="data/proposals_previous/proposal_08.txt">
+Hello,
+
+My name is Anas, and I am a full-time freelance professional based in Pakistan (GMT+5).
+I have 4+ years of hands-on experience working remotely with international clients on Upwork-style projects.
+I am available 30-40 hours per week and can overlap with US/UK business hours.
+
+I can help you improve your DevOps setup so deployments are faster, safer, and easier for your team to manage.
+
+What I can deliver:
+- CI/CD pipeline setup or optimization.
+- Containerization and environment standardization.
+- Infrastructure setup with clear version-controlled configuration.
+- Monitoring, alerting, and log visibility improvements.
+- Safer release strategies (staged rollout/rollback readiness).
+
+My experience includes:
+- Cloud deployment workflows and container orchestration.
+- Git-based release automation.
+- Performance and cost optimization for running services.
+- Security-first infrastructure practices.
+
+How I execute:
+- Audit current setup and identify immediate wins.
+- Implement high-impact fixes first.
+- Document everything for handoff and future maintenance.
+
+If you share your current stack, cloud provider, and pain points, I can map out a phased plan with realistic timelines.
+
+Thank you.
+
+Best regards,
+Anas
+Pakistan
+</file>
+
+<file path="src/config.py">
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Config:
+    CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_db_data")
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+    AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
+    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME")
+
+    if not AZURE_OPENAI_ENDPOINT or not AZURE_OPENAI_KEY or not AZURE_DEPLOYMENT_NAME:
+        raise ValueError("AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, and AZURE_DEPLOYMENT_NAME are missing in the .env file")
+</file>
+
+<file path="utils/__init__.py">
+
+</file>
+
+<file path="data/resumes/user_resume.txt">
+Muhammad Anas
+Karachi, Paksitan | anas.carter@email.com | github.com/anas | linkedin.com/in/anas
+
+SUMMARY
+Full-stack ML engineer with 5+ years of experience building and deploying production machine learning systems, data pipelines, and AI-powered applications. Skilled across the full lifecycle from data ingestion and model training to API deployment and cloud infrastructure. Strong focus on responsible AI, system reliability, and clean, maintainable code.
+
+EDUCATION
+B.S. in Computer Science, University of Karachi, Pakistan
+GPA: 3.8/4.0 | Graduated May 2020
+
+RELEVANT COURSEWORK
+Machine Learning, Deep Learning, Distributed Systems, Databases, Algorithms, Natural Language Processing
+
+TECHNICAL SKILLS
+Languages:     Python, TypeScript, JavaScript, SQL, Bash
+ML / AI:       PyTorch, scikit-learn, XGBoost, LightGBM, Hugging Face Transformers, LangChain, LangGraph
+Data:          pandas, NumPy, Apache Spark, dbt, Apache Airflow, Snowflake, PostgreSQL
+Backend:       FastAPI, Node.js, REST APIs, GraphQL, WebSockets
+Frontend:      React, Next.js, Tailwind CSS
+Infra / Cloud: AWS (EC2, S3, SageMaker, EKS), Docker, Kubernetes, Terraform, GitHub Actions, Prometheus, Grafana
+VectorDBs:     ChromaDB, Pinecone, FAISS
+Tools:         MLflow, Weights & Biases, Jupyter, Git
+
+EXPERIENCE
+
+Senior ML Engineer — Stripe, San Francisco, CA (Jan 2023 – Present)
+. Built a real-time fraud detection system using XGBoost and LightGBM on 50M+ daily transactions, reducing fraudulent chargebacks by 34% within 3 months of deployment.
+. Designed and maintained the full ML pipeline: feature engineering with pandas/Spark, model training tracked via MLflow, and a FastAPI inference service serving predictions at <40ms p99 latency.
+. Containerized all services with Docker, deployed on AWS SageMaker for auto-scaling, and set up Prometheus + Grafana dashboards for model drift monitoring.
+. Integrated RAG-based anomaly explanations using LangChain + ChromaDB to surface interpretable alerts for the fraud ops team.
+
+ML Engineer — Scale AI, San Francisco, CA (Jul 2020 – Dec 2022)
+. Developed and shipped 3 NLP models for text classification and named entity recognition using Hugging Face Transformers, improving label accuracy by 22% over baseline.
+. Built ETL pipelines with Apache Airflow and dbt to ingest and transform annotation data into a Snowflake warehouse, replacing a brittle set of manual scripts.
+. Wrote REST API wrappers in FastAPI to expose model inference endpoints consumed by internal tooling and external clients.
+. Mentored 2 junior engineers and led weekly ML reading group sessions.
+
+Software Engineering Intern — Salesforce, San Francisco, CA (May 2019 – Aug 2019)
+. Built a React + Node.js internal dashboard for visualizing CRM data trends, adopted by the data analytics team for weekly reporting.
+. Wrote unit and integration tests with Jest achieving 85% coverage on all new features.
+
+PROJECTS
+
+ProposalGuard (Personal Project)
+. Built an agentic AI system using LangGraph to draft personalized freelance proposals grounded in a user's resume and past proposals stored in ChromaDB.
+. Implemented human-in-the-loop review, bias detection guardrails, and a FastAPI backend; deployed locally with Docker.
+
+Open-Source LLM Benchmarking Tool (GitHub)
+. Developed a CLI tool in Python to benchmark LLM response quality across multiple providers (OpenAI, Gemini, Anthropic) using configurable evaluation rubrics.
+. Gained 400+ GitHub stars within 2 months of release.
+
+CERTIFICATIONS
+AWS Certified Solutions Architect — Associate
+AWS Certified Machine Learning — Specialty
+</file>
+
+<file path="src/nodes/human_review.py">
+from src.state import GraphState
+
+
+def human_review(state: GraphState) -> dict:
+    score = state.get("grounding_score", 0.0)
+    retry = state.get("retry_count", 0)
+
+    print(f"[Review] Proposal ready (score: {score}, attempt #{retry + 1})")
+    print("[Review] APPROVED — auto-approving for API flow")
+
+    # Auto-approve: in a real system this would be a human-in-the-loop interrupt
+    return {
+        "human_feedback": None,
+        "status": "approved",
+    }
+</file>
+
+<file path="src/graph_nodes.py">
+from typing import TypedDict
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import PromptTemplate
+from src.vector_store import ProposalVectorStore
+from src.config import Config
+
+# 1. Define the LangGraph State
+class AgentState(TypedDict):
+    job_description: str
+    retrieved_proposals: list[str]
+    drafted_proposal: str
+
+# 2. Initialize Vector Store
+db = ProposalVectorStore()
+retriever = db.get_retriever(num_results=2)
+
+# 3. Initialize Gemini
+# We use gemini-1.5-flash because it is extremely fast, highly capable, and free via AI Studio
+llm = ChatGoogleGenerativeAI(
+    model="gemini-1.5-flash",
+    temperature=0.7, 
+    api_key=Config.GOOGLE_API_KEY
+)
+
+# 4. Node 1: Retrieval
+def retrieve_past_proposals_node(state: AgentState):
+    """Retrieves relevant past work from Chroma DB."""
+    print("--- NODE: RETRIEVING PAST PROPOSALS ---")
+    query = state["job_description"]
+    
+    docs = retriever.invoke(query)
+    proposals_text = [doc.page_content for doc in docs]
+    
+    return {"retrieved_proposals": proposals_text}
+
+# 5. Node 2: Generation (Now Powered by Gemini!)
+def generate_proposal_node(state: AgentState):
+    """Drafts the new proposal using Gemini and retrieved context."""
+    print("--- NODE: GENERATING PROPOSAL WITH GEMINI ---")
+    
+    job = state["job_description"]
+    past_work = "\n- ".join(state["retrieved_proposals"])
+    
+    # Define the system instructions for the AI
+    prompt = PromptTemplate.from_template(
+        "You are an expert freelance proposal writer. Your goal is to write a highly converting, "
+        "concise cover letter for the job described below.\n\n"
+        "CRITICAL RULES:\n"
+        "1. Do NOT hallucinate skills. ONLY use the experience listed in the 'Past Relevant Work' section.\n"
+        "2. Keep it professional, conversational, and under 3 paragraphs.\n"
+        "3. Do not use generic, robot-sounding buzzwords.\n\n"
+        "Job Description:\n{job_description}\n\n"
+        "Past Relevant Work:\n{past_work}\n\n"
+        "Drafted Proposal:"
+    )
+    
+    # LangChain Expression Language (LCEL) to pipe the prompt into Gemini
+    chain = prompt | llm
+    
+    # Execute the call
+    response = chain.invoke({
+        "job_description": job,
+        "past_work": past_work
+    })
+    
+    # Update the state with the actual generated text
+    return {"drafted_proposal": response.content}
+
+
+def finalize_proposal_node(state: AgentState):
+    """The final step that only runs AFTER human approval."""
+    print("--- NODE: FINALIZING PROPOSAL ---")
+    print("✅ Proposal Approved and Ready to Send!")
+    
+    # In a real app, this is where you would trigger an API to send the email/proposal.
+    # For now, we just pass the state through.
+    print("Draft Proposal: ", state["drafted_proposal"][:20])
+    return {"drafted_proposal": state["drafted_proposal"]}
+</file>
+
+<file path="src/graph.py">
+from langgraph.graph import StateGraph, START, END
+from src.state import GraphState
+from src.nodes.retrieve import retrieve_context
+from src.nodes.generate import generate_proposal
+from src.nodes.verify import verify_grounding
+from src.nodes.bias_check import check_bias
+from src.nodes.human_review import human_review
+
+GROUNDING_THRESHOLD = 0.5
+MAX_RETRIES = 3
+
+
+def route_after_verification(state: GraphState) -> str:
+    score = state.get("grounding_score", 0.0)
+    if score >= GROUNDING_THRESHOLD:
+        return "pass"
+    return "fail"
+
+
+def route_after_bias(state: GraphState) -> str:
+    flags = state.get("bias_flags", [])
+    if len(flags) == 0:
+        return "clean"
+    return "flagged"
+
+
+def route_after_human(state: GraphState) -> str:
+    feedback = state.get("human_feedback", None)
+    if feedback is None:
+        return "approved"
+    return "rejected"
+
+
+def increment_retry(state: GraphState) -> dict:
+    current_count = state.get("retry_count", 0)
+    new_count = current_count + 1
+    print(f"[Retry] {current_count} -> {new_count}")
+    return {"retry_count": new_count}
+
+
+def route_after_retry(state: GraphState) -> str:
+    retry_count = state.get("retry_count", 0)
+    if retry_count >= MAX_RETRIES:
+        return "force_review"
+    return "regenerate"
+
+workflow = StateGraph(GraphState)
+
+workflow.add_node("retrieve", retrieve_context)
+workflow.add_node("generate", generate_proposal)
+workflow.add_node("verify", verify_grounding)
+workflow.add_node("bias_check", check_bias)
+workflow.add_node("human_review", human_review)
+workflow.add_node("increment_retry", increment_retry)
+
+workflow.add_edge(START, "retrieve")
+workflow.add_edge("retrieve", "generate")
+workflow.add_edge("generate", "verify")
+
+workflow.add_conditional_edges("verify", route_after_verification, {
+    "pass": "bias_check",
+    "fail": "increment_retry",
+})
+
+workflow.add_conditional_edges("bias_check", route_after_bias, {
+    "clean": "human_review",
+    "flagged": "human_review",  # bias flags are surfaced to reviewer, not regenerated
+})
+
+workflow.add_conditional_edges("increment_retry", route_after_retry, {
+    "regenerate": "generate",
+    "force_review": "human_review",
+})
+
+workflow.add_conditional_edges("human_review", route_after_human, {
+    "approved": END,
+    "rejected": "increment_retry",
+})
+
+graph = workflow.compile()
+</file>
+
+<file path="src/state.py">
+from typing import TypedDict, Optional
+
+
+class GraphState(TypedDict):
+    rfp_text: str
+    job_description: str
+    resume_text: str
+    retrieved_context: list[str]
+    draft_proposal: Optional[str]
+    grounding_score: float
+    bias_flags: list[str]
+    baseline_profile: dict
+    human_feedback: Optional[str]
+    retry_count: int
+    status: str
+</file>
+
+<file path=".gitignore">
+venv/
+__pycache__/
+.env
+*.pyc
+.DS_Store
+# Environments
+venv/
+env/
+.env
+env
+env/*
+
+# Vector Database local storage
+chroma_db_data/
+.langraph_api/*
+.langraph_api
+*.pckl
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+</file>
+
+<file path="Dockerfile">
+FROM python:3.13
+
+LABEL name="ProposalGuard"
+
+# # Prevent Python from buffering stdout/stderr and writing .pyc files
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONNUNBUFFERED=1
+
+WORKDIR /app
+
+# 1. copy the files needed for installations
+COPY requirements.txt .
+
+# 2. COPY src folder to the src folder of the container
+COPY src ./src
+
+# 2a. Copy the Data folder needed by the application
+COPY data ./data
+
+
+# 3. Install the dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 4. Expose the ports necessary for the application
+EXPOSE 8000
+
+# 5. Run the application
+ENTRYPOINT ["uvicorn", "src.app:app", "--port", "8000"]
+</file>
+
+<file path="src/apis/proposal.py">
+import os
+import logging
+from fastapi import APIRouter, HTTPException, UploadFile, File  
+from pydantic import BaseModel
+from src.main import run_proposal_pipeline
+from src.vectorStore import ProposalVectorStore
+import uuid
+
+
+# Create a logger
+logger = logging.getLogger("proposal_generation_api")
+logger.setLevel(logging.DEBUG)
+
+
+# Configure the logger
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+router = APIRouter()
+
+
+class ProposalRequest(BaseModel):
+    job_description: str
+
+
+@router.post("/proposals/generate_proposal")
+def generate_proposal(request: ProposalRequest):
+    job_description = request.job_description
+    logger.info("Generating proposal for job description: %s...", job_description[:50])
+
+    # Discover resume path relative to the project root
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    resume_txt = os.path.join(base_dir, "data", "resumes", "user_resume.txt")
+    resume_pdf = os.path.join(base_dir, "data", "resumes", "user_resume.pdf")
+
+    if os.path.exists(resume_txt):
+        logger.info("Resume found at %s", resume_txt)
+        with open(resume_txt, "r", encoding="utf-8") as f:
+            resume_text = f.read()
+    elif os.path.exists(resume_pdf):
+        logger.warning("Only PDF resume found — PDF parsing not implemented. Using empty resume.")
+        resume_text = "Resume available as PDF but parsing is not yet implemented."
+    else:
+        logger.warning("Resume not found in data/resumes/")
+        return {"error": "Resume not found, please ensure data/resumes/user_resume.txt exists"}
+
+    try:
+        # Run the full LangGraph proposal pipeline
+        final_state = run_proposal_pipeline(
+            job_description=job_description,
+            resume_text=resume_text,
+        )
+        proposal = final_state.get("draft_proposal")
+
+        if proposal is None:
+            logger.error("Failed to generate proposal: draft_proposal is None")
+            return {"error": "Failed to generate proposal"}
+
+        logger.info("Proposal generated successfully. Status: %s", final_state.get("status"))
+        return {
+            "proposal": proposal,
+            "status": final_state.get("status"),
+            "grounding_score": final_state.get("grounding_score"),
+        }
+    except Exception as e:
+        logger.exception("Error during proposal generation")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+#  Initialize your existing Vector Database
+db = ProposalVectorStore()
+
+# 3. Create the Upload Endpoint
+@router.post("/proposals/upload")
+async def upload_proposal(file: UploadFile = File(...)):
+    """
+    Accepts a .txt file containing a past proposal and saves it to the vector database.
+    """
+    # Guardrail: Check file extension
+    if not file.filename.endswith(".txt"):
+        raise HTTPException(
+            status_code=400, 
+            detail="Invalid file type. Only .txt files are supported currently."
+        )
+    
+    try:
+        # Read the file asynchronously
+        content = await file.read()
+        
+        # Decode the bytes into a standard string
+        text_content = content.decode("utf-8")
+        
+        # Guardrail: Check if the file is empty
+        if not text_content.strip():
+            raise HTTPException(status_code=400, detail="The provided .txt file is empty.")
+
+        # Generate a unique ID for this document so it doesn't overwrite others
+        doc_id = str(uuid.uuid4())
+        
+        # Create metadata so you know where this vector came from
+        metadata = {
+            "filename": file.filename,
+            "source": "manual_upload",
+            "type": "past_proposal"
+        }
+        
+        # Add to Chroma DB using your existing method!
+        db.add_proposals(
+            texts=[text_content],
+            metadatas=[metadata],
+            ids=[doc_id]
+        )
+        
+        return {
+            "status": "success",
+            "message": f"Successfully ingested {file.filename}",
+            "document_id": doc_id
+        }
+
+    except Exception as e:
+        # Catch any encoding or database errors
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+</file>
+
+<file path="src/nodes/retrieve.py">
+from src.state import GraphState
+from src.vectorStore import ProposalVectorStore
+
+# Initialize the vector store once (or manage its lifecycle appropriately)
+# In a production app, this might be a singleton or passed through config.
+vector_db = ProposalVectorStore()
+
+def retrieve_context(state: GraphState) -> dict:
+    resume_text = state.get("resume_text", "")
+    job_description = state.get("job_description", "")
+
+    print(f"[Retrieve] Job description (first 80 chars): {job_description[:80]}...")
+
+    # 1. Start with the resume text as the primary context.
+    context_docs = [resume_text] if resume_text else []
+    
+    # 2. Fetch relevant past proposals from the Vector DB
+    if job_description:
+        print("[Retrieve] Fetching relevant past proposals from Vector DB...")
+        retriever = vector_db.get_retriever(num_results=2)
+        past_proposals = retriever.invoke(job_description)
+        
+        for doc in past_proposals:
+            context_docs.append(doc.page_content)
+            
+        print(f"[Retrieve] Added {len(past_proposals)} past proposal(s) from Vector DB")
+
+    print(f"[Retrieve] Total context documents: {len(context_docs)} (1 resume + {len(context_docs)-1 if resume_text else len(context_docs)} from DB)")
+
+    return {
+        "retrieved_context": context_docs,
+        "draft_proposal": state.get("draft_proposal", None),
+        "grounding_score": state.get("grounding_score", 0.0),
+        "bias_flags": state.get("bias_flags", []),
+        "retry_count": state.get("retry_count", 0),
+        "human_feedback": state.get("human_feedback", None),
+        "status": "retrieved",
+    }
+</file>
+
+<file path="src/main.py">
+from src.graph import graph
+
+
+def run_proposal_pipeline(job_description: str, resume_text: str, rfp_text: str = ""):
+    """
+    Executes the proposal generation pipeline.
+    - job_description: the job posting / RFP the user wants to apply to
+    - resume_text:     the raw text content of the user's resume
+    - rfp_text:        optional alias for job_description (kept for compatibility)
+    Returns the final state of the graph.
+    """
+    initial_state = {
+        "rfp_text": rfp_text or job_description,
+        "job_description": job_description,
+        "resume_text": resume_text,
+        "retrieved_context": [],
+        "draft_proposal": None,
+        "grounding_score": 0.0,
+        "bias_flags": [],
+        "human_feedback": None,
+        "retry_count": 0,
+        "status": "new",
+    }
+    return graph.invoke(initial_state)
+
+
+def main():
+    import os
+
+    test_rfp = (
+        "Looking for a senior full-stack developer to build an AI-powered "
+        "customer support dashboard. Tech stack: Next.js, TypeScript, "
+        "Tailwind, Supabase. Must have experience with real-time features "
+        "and AI/LLM integration. Budget: $15-20k. Timeline: 8 weeks."
+    )
+
+    # Load resume from default location
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    resume_path = os.path.join(base_dir, "data", "resumes", "user_resume.txt")
+    if os.path.exists(resume_path):
+        with open(resume_path, "r", encoding="utf-8") as f:
+            resume_text = f.read()
+    else:
+        resume_text = "No resume found."
+
+    print("=" * 50)
+    print("ProposalGuard — Pipeline Run")
+    print("=" * 50)
+
+    final_state = run_proposal_pipeline(
+        job_description=test_rfp,
+        resume_text=resume_text,
+    )
+
+    print("=" * 50)
+    print(f"Status:    {final_state['status']}")
+    print(f"Retries:   {final_state['retry_count']}")
+    print(f"Score:     {final_state['grounding_score']}")
+    print(f"Bias:      {final_state['bias_flags']}")
+    print(f"Proposal:\n{final_state['draft_proposal']}")
+
+
+# if __name__ == "__main__":
+#     main()
+</file>
+
+<file path="Readme.md">
+# Proposal Guard
+An agentic AI system that writes personalized proposals and cover letters for freelancers on freelance platforms based on their past proposals and relevance to job description a/w human-in-the-loop review, and responsible AI guardrails.
+###  The Problem
+We are building an agentic AI system that drafts highly personalized proposals and cover letters by grounding them in a freelancer’s actual past work and portfolio data. This matters because current AI tools often hallucinate credentials or produce generic, "robot-sounding" text that hurts conversion rates. Furthermore, standard LLMs can exhibit demographic bais that disadvantages certain groups; our solution integrates human-in-the-loop review and safety guardrails to ensure every proposal is factual, professional, and free from harmful bias before it gets sent.
+
+--- 
+## Setting up 
+
+### Create a virtual environment
+- Linux 
+```bash
+python -m venv venv
+```
+### Activate the virtual environment
+-  On macOS/Linux:
+```bash
+source venv/bin/activate
+```
+-  On Windows:
+```bash
+ venv\Scripts\activate
+```
+
+### Install dependencies
+```bash
+pip install -r requirements.txt
+```
+### Setting up environment variables
+- Create a .env file in the root directory
+- Add the following variables to the .env file
+```bash
+GOOGLE_API_KEY=your_google_api_key
+CHROMA_DB_PATH=./chroma_db  
+GOOGLE_API_KEY=<your key>
+CHROMA_DB_PATH=./chroma_db  
+LANGSMITH_API_KEY=<your key>
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT="ProposalGuard"
+``` 
+### Run the pipeline 
+Run the following command from root directory   
+```bash
+uvicorn src.app:app --reload    
+```
+
+### Test the API
+- Open the following URL in your browser: http://127.0.0.1:8000/docs
+- Click on "POST /generate" and then "Try it out"
+- Enter a job description and click "Execute"  
+
+### Example job description
+```bash
+"Looking for a senior full-stack developer to build an AI-powered customer support dashboard. Must be proficient in Next.js, TypeScript, Supabase, and Tailwind CSS. Experience with AI integrations and data visualization is a plus. The dashboard will help businesses automate responses and analyze customer interactions."
+``` 
+
+## Setting up Vector DB
+Run the `/proposals/upload` endpoint to upload past proposals to the vector database.
+</file>
+
+<file path="src/nodes/generate.py">
+import os
+# from langchain_google_genai import ChatGoogleGenerativeAI
+from groq import Groq
+from langchain_core.prompts import PromptTemplate
+from src.state import GraphState
+from src.config import Config
+
+
+# # Initialize Gemini once at module level (re-enable when ready)
+# _llm = ChatGoogleGenerativeAI(
+#     model="gemini-2.5-flash-lite",
+#     temperature=0.7,
+#     api_key=Config.GOOGLE_API_KEY,
+# )
+
+# Using Groq llama for now
+_GROQ_MODEL = "openai/gpt-oss-120b"
+_groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+
+def generate_proposal(state: GraphState) -> dict:
+    context = state.get("retrieved_context", [])
+    job_description = state.get("job_description", "")
+    retry = state.get("retry_count", 0)
+    feedback = state.get("human_feedback", None)
+
+    print(f"[Generate] Drafting proposal with Groq llama (attempt #{retry + 1})")
+    if feedback:
+        print(f"[Generate] Incorporating feedback: {feedback}")
+
+    # Distinguish between resume and past proposals in the context
+    resume_content = context[0] if context else "No resume available."
+    past_proposals = context[1:] if len(context) > 1 else []
+
+    past_proposals_text = (
+        "\n\n---\n\n".join(past_proposals) if past_proposals else "No past proposals found."
+    )
+
+    if past_proposals:
+        print(f"[SAMPLE] {past_proposals[0][:120]}...")
+
+    print(f"[Generate] context size: {len(context)} (1 resume + {len(past_proposals)} past proposals)")
+
+    feedback_section = (
+        f"\n\nPrevious feedback to incorporate:\n{feedback}" if feedback else ""
+    )
+
+    prompt = PromptTemplate.from_template(
+        "You are an expert freelance proposal writer. Your task is to write a highly "
+        "converting, concise cover letter / proposal for the job below.\n\n"
+        "RULES:\n"
+        "1. Ground the proposal in the Applicant Resume AND the Past Relevant Proposals. "
+        "Both are real evidence of the applicant's work — use specific details, numbers, "
+        "and technologies from either source where relevant to the job.\n"
+        "2. Do NOT invent experience that does not appear in either the resume or the past proposals.\n"
+        "3. Keep it professional, conversational, and under 4 short paragraphs.\n"
+        "4. Avoid generic buzzwords. Be specific and reference real project details.\n"
+        "5. End with a clear call to action.\n\n"
+        "Job Description:\n{job_description}\n\n"
+        "Applicant Resume:\n{resume_text}\n\n"
+        "Past Relevant Proposals (real past work — use these details):\n{past_proposals_text}"
+        "{feedback_section}\n\n"
+        "Proposal:"
+    )
+
+    filled_prompt = prompt.format(
+        job_description=job_description,
+        resume_text=resume_content,
+        past_proposals_text=past_proposals_text,
+        feedback_section=feedback_section,
+    )
+
+    # # LangChain chain (re-enable with Gemini when ready)
+    # chain = prompt | _llm
+    # response = chain.invoke({
+    #     "job_description": job_description,
+    #     "resume_text": resume_content,
+    #     "past_proposals_text": past_proposals_text,
+    #     "feedback_section": feedback_section,
+    # })
+    # proposal_text = response.content
+
+    response = _groq_client.chat.completions.create(
+        model=_GROQ_MODEL,
+        temperature=0.7,
+        messages=[{"role": "user", "content": filled_prompt}],
+    )
+    proposal_text = response.choices[0].message.content.strip()
+
+    print(f"[Generate] Proposal generated ({len(proposal_text)} chars)")
+
+    return {
+        "draft_proposal": proposal_text,
+        "status": "draft",
+    }
+</file>
+
+<file path="src/nodes/verify.py">
+import json
+import os
+# from langchain_google_genai import ChatGoogleGenerativeAI
+from groq import Groq
+from langchain_core.prompts import PromptTemplate
+from src.state import GraphState
+from src.config import Config
+
+# # Initialize Gemini (re-enable when ready)
+# _llm = ChatGoogleGenerativeAI(
+#     model="gemini-2.5-flash",
+#     temperature=0.0,
+#     api_key=Config.GOOGLE_API_KEY,
+# )
+
+# Using Groq llama for now
+_GROQ_MODEL = "llama-3.1-8b-instant"
+_groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+_EXTRACT_CLAIMS_PROMPT = PromptTemplate.from_template(
+    "Extract every specific factual claim the proposal makes about the applicant "
+    "(skills, technologies, tools, project names, metrics, years of experience, etc.).\n\n"
+    "Proposal:\n{proposal}\n\n"
+    "Return a JSON array of short claim strings and nothing else. Example:\n"
+    '[\"5 years of Python experience\", \"built a REST API with FastAPI\"]'
+)
+
+_VERIFY_CLAIMS_PROMPT = PromptTemplate.from_template(
+    "You are a strict fact-checker. For each claim below, determine whether it is "
+    "SUPPORTED or UNSUPPORTED based solely on the provided source documents "
+    "(resume and past proposals). Do not use outside knowledge.\n\n"
+    "Source Documents:\n{source_text}\n\n"
+    "Claims to verify:\n{claims_json}\n\n"
+    "Return a JSON object with two keys:\n"
+    "  \"supported\": list of supported claims\n"
+    "  \"unsupported\": list of unsupported/hallucinated claims\n"
+    "Return only valid JSON, no markdown."
+)
+
+
+def verify_grounding(state: GraphState) -> dict:
+    proposal = state.get("draft_proposal", "")
+    context = state.get("retrieved_context", [])
+
+    if not proposal:
+        print("[Verify] No proposal to verify — score 0.0")
+        return {"grounding_score": 0.0, "status": "verifying"}
+
+    # Build the source text from resume + past proposals
+    source_parts = []
+    if context:
+        source_parts.append(f"[RESUME]\n{context[0]}")
+    for i, past in enumerate(context[1:], start=1):
+        source_parts.append(f"[PAST PROPOSAL {i}]\n{past}")
+    source_text = "\n\n".join(source_parts) if source_parts else "No source documents available."
+
+    print("[Verify] Step 1 — Extracting claims from draft proposal...")
+    try:
+        extract_prompt = _EXTRACT_CLAIMS_PROMPT.format(proposal=proposal)
+        response = _groq_client.chat.completions.create(
+            model=_GROQ_MODEL,
+            temperature=0.0,
+            messages=[{"role": "user", "content": extract_prompt}],
+        )
+        raw = response.choices[0].message.content.strip()
+        # Strip markdown code fences if present
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        claims: list[str] = json.loads(raw.strip())
+    except Exception as e:
+        print(f"[Verify] Failed to extract claims: {e} — defaulting score to 0.5")
+        return {"grounding_score": 0.5, "status": "verifying"}
+
+    if not claims:
+        print("[Verify] No claims extracted — treating as fully grounded (score 1.0)")
+        return {"grounding_score": 1.0, "status": "verifying"}
+
+    print(f"[Verify] Extracted {len(claims)} claim(s): {claims}")
+
+    print("[Verify] Step 2 — Verifying claims against resume + past proposals...")
+    try:
+        verify_prompt = _VERIFY_CLAIMS_PROMPT.format(
+            source_text=source_text,
+            claims_json=json.dumps(claims),
+        )
+        response2 = _groq_client.chat.completions.create(
+            model=_GROQ_MODEL,
+            temperature=0.0,
+            messages=[{"role": "user", "content": verify_prompt}],
+        )
+        raw2 = response2.choices[0].message.content.strip()
+        if raw2.startswith("```"):
+            raw2 = raw2.split("```")[1]
+            if raw2.startswith("json"):
+                raw2 = raw2[4:]
+        result = json.loads(raw2.strip())
+        supported: list[str] = result.get("supported", [])
+        unsupported: list[str] = result.get("unsupported", [])
+    except Exception as e:
+        print(f"[Verify] Failed to verify claims: {e} — defaulting score to 0.5")
+        return {"grounding_score": 0.5, "status": "verifying"}
+
+    total = len(supported) + len(unsupported)
+    score = round(len(supported) / total, 2) if total > 0 else 1.0
+
+    print(f"[Verify] Grounding score: {score}  ({len(supported)} supported / {total} total)")
+    if unsupported:
+        print(f"[Verify] Unsupported (hallucinated) claims: {unsupported}")
+    else:
+        print("[Verify] All claims are grounded in source documents.")
+
+    return {
+        "grounding_score": score,
+        "status": "verifying",
+    }
+</file>
+
+<file path="src/nodes/bias_check.py">
+from __future__ import annotations
+
+import copy
+import math
+import os
+import re
+from typing import Optional
+
+from groq import Groq
+from pydantic import BaseModel
+
+from src.state import GraphState
+# Reuse the same Groq client + model as the proposal generator for consistency
+from src.nodes.generate import generate_proposal
+
+# ---------------------------------------------------------------------------
+# Model configuration
+# ---------------------------------------------------------------------------
+MODEL_ID = "openai/gpt-oss-20b"
+
+SYSTEM_PROMPT = (
+    "You are a structured reasoning engine. Follow instructions exactly. "
+    "Do not hallucinate. Do not add information beyond what is requested. "
+    "Adhere strictly to any metrics or constraints provided. "
+    "Think step by step before producing output."
+)
+
+# ---------------------------------------------------------------------------
+# Groq client (reuse env var; call_model assumed to share the same key)
+# ---------------------------------------------------------------------------
+_groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
+# Groq does not support embeddings — always use local deterministic approximation
+# (see _local_embedding_fallback below)
+
+
+# ---------------------------------------------------------------------------
+# call_model — thin wrapper so the node is self-contained; existing graph code
+# may pass its own version; this one is used internally here.
+# ---------------------------------------------------------------------------
+def call_model(system: str, user: str, model: str = MODEL_ID) -> str:
+    response = _groq_client.chat.completions.create(
+        model=model,
+        temperature=0.0,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+    )
+    return response.choices[0].message.content.strip()
+
+
+# ---------------------------------------------------------------------------
+# Pydantic evaluation schema
+# ---------------------------------------------------------------------------
+class BiasEvaluation(BaseModel):
+    is_biased: bool
+    bias_score: float
+    price_diff: float
+    tone_diff: float
+    length_diff: float
+    similarity: float
+    bias_details: list[str]
+    debiasing_instructions: list[str]
+
+
+# ---------------------------------------------------------------------------
+# Counterfactual profile generation
+# ---------------------------------------------------------------------------
+_ALTERNATE_NAMES = ["Alex Johnson", "Jordan Smith", "Morgan Lee"]
+_ALTERNATE_LOCATIONS = ["Berlin, Germany", "Lagos, Nigeria", "Seoul, South Korea"]
+
+
+def _build_control_profiles(baseline: dict) -> list[dict]:
+    """
+    Return 3 control profiles derived from the baseline.
+
+    A: same name, different location
+    B: different name, same location
+    C: different name, different location
+    """
+    name = baseline.get("name", "Jamie Rivera")
+    location = baseline.get("location", "New York, USA")
+    rate = baseline.get("rate", baseline.get("hourly_rate", ""))
+
+    alt_name = _ALTERNATE_NAMES[0] if name not in _ALTERNATE_NAMES else _ALTERNATE_NAMES[1]
+    alt_location = _ALTERNATE_LOCATIONS[0] if location not in _ALTERNATE_LOCATIONS else _ALTERNATE_LOCATIONS[1]
+
+    profile_a = copy.deepcopy(baseline)
+    profile_a["name"] = name
+    profile_a["location"] = alt_location
+    profile_a["rate"] = rate
+
+    profile_b = copy.deepcopy(baseline)
+    profile_b["name"] = alt_name
+    profile_b["location"] = location
+    profile_b["rate"] = rate
+
+    profile_c = copy.deepcopy(baseline)
+    profile_c["name"] = alt_name
+    profile_c["location"] = alt_location
+    profile_c["rate"] = rate
+
+    return [profile_a, profile_b, profile_c]
+
+
+# ---------------------------------------------------------------------------
+# Control proposal generation
+# ---------------------------------------------------------------------------
+def _profile_to_str(profile: dict) -> str:
+    return "\n".join(f"{k}: {v}" for k, v in profile.items())
+
+
+def _generate_control_proposal(
+    job_posting: str,
+    retrieved_context: list,
+    profile: dict,
+) -> str:
+    """
+    Regenerate a full proposal from scratch using generate_proposal(), but with
+    the control profile's demographics prepended to the resume so the model
+    sees a different name/location/rate. All skills and experience are identical.
+    """
+    name = profile.get("name", "")
+    location = profile.get("location", "")
+    rate = profile.get("rate", "")
+
+    # Prepend control profile header to the resume (first context element)
+    resume_content = retrieved_context[0] if retrieved_context else "No resume available."
+    control_header = f"Applicant: {name} | Location: {location} | Rate: {rate}\n\n"
+    modified_context = [control_header + resume_content] + list(retrieved_context[1:])
+
+    # Build a synthetic state and reuse the exact same generation pipeline
+    control_state = {
+        "job_description": job_posting,
+        "retrieved_context": modified_context,
+        "retry_count": 0,
+        "human_feedback": None,
+    }
+    result = generate_proposal(control_state)
+    return result["draft_proposal"]
+
+
+# ---------------------------------------------------------------------------
+# Feature extraction
+# ---------------------------------------------------------------------------
+_HEDGING_PATTERN = re.compile(
+    r"\b(maybe|perhaps|possibly|might|could|somewhat|kind of|sort of|"
+    r"i think|i believe|i feel|hopefully|probably|roughly|approximately|"
+    r"around|about|not sure|unsure|if possible|if needed)\b",
+    re.IGNORECASE,
+)
+
+_ASSERTIVE_PATTERN = re.compile(
+    r"\b(will|guarantee|deliver|ensure|committed|proven|expert|"
+    r"speciali[sz]e|lead|achieve|drive|execute|confident|dedicated|"
+    r"capable|provide|complete|build|launch|optimize|outperform)\b",
+    re.IGNORECASE,
+)
+
+_PRICE_PATTERN = re.compile(
+    r"\$\s*(\d[\d,]*(?:\.\d{1,2})?)|(\d[\d,]*(?:\.\d{1,2})?)\s*(?:USD|usd|dollars?)",
+)
+
+
+def extract_price(text: str) -> Optional[float]:
+    matches = _PRICE_PATTERN.findall(text)
+    prices: list[float] = []
+    for m in matches:
+        raw = (m[0] or m[1]).replace(",", "")
+        try:
+            prices.append(float(raw))
+        except ValueError:
+            continue
+    return prices[0] if prices else None
+
+
+def count_hedging(text: str) -> int:
+    return len(_HEDGING_PATTERN.findall(text))
+
+
+def count_assertive(text: str) -> int:
+    return len(_ASSERTIVE_PATTERN.findall(text))
+
+
+def token_count(text: str) -> int:
+    # Simple whitespace tokeniser — no external dependency
+    return len(re.findall(r"\S+", text))
+
+
+# ---------------------------------------------------------------------------
+# Semantic similarity via sentence-transformers (industry standard)
+# ---------------------------------------------------------------------------
+from sentence_transformers import SentenceTransformer
+
+# all-MiniLM-L6-v2: lightweight (80 MB), fast, high quality — standard choice
+_embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+
+def _get_embedding(text: str) -> list[float]:
+    return _embed_model.encode(text, normalize_embeddings=True).tolist()
+
+
+def cosine_similarity(text_a: str, text_b: str) -> float:
+    vec_a = _get_embedding(text_a)
+    vec_b = _get_embedding(text_b)
+
+    dot = sum(a * b for a, b in zip(vec_a, vec_b))
+    mag_a = math.sqrt(sum(a * a for a in vec_a))
+    mag_b = math.sqrt(sum(b * b for b in vec_b))
+
+    if mag_a == 0.0 or mag_b == 0.0:
+        return 0.0
+    return dot / (mag_a * mag_b)
+
+
+# ---------------------------------------------------------------------------
+# Threshold constants
+# ---------------------------------------------------------------------------
+PRICE_DIFF_THRESHOLD = 0.15
+TONE_DIFF_THRESHOLD = 2
+SIMILARITY_THRESHOLD = 0.75
+LENGTH_DIFF_THRESHOLD = 0.25
+
+
+# ---------------------------------------------------------------------------
+# Single-pair evaluation
+# ---------------------------------------------------------------------------
+def _evaluate_pair(
+    baseline_text: str,
+    control_text: str,
+    label: str,
+) -> tuple[float, list[str], BiasEvaluation]:
+    """
+    Compare baseline vs. one control proposal.
+    Returns (score, bias_details, BiasEvaluation).
+    """
+    # --- Step A: Extract metrics ---
+    b_price = extract_price(baseline_text)
+    c_price = extract_price(control_text)
+    b_tokens = token_count(baseline_text)
+    c_tokens = token_count(control_text)
+    b_hedge = count_hedging(baseline_text)
+    c_hedge = count_hedging(control_text)
+    b_assert = count_assertive(baseline_text)
+    c_assert = count_assertive(control_text)
+
+    # --- Step B: Compute diffs ---
+    # Price diff ratio
+    if b_price is not None and c_price is not None:
+        avg_price = (b_price + c_price) / 2.0
+        price_diff_ratio = abs(b_price - c_price) / avg_price if avg_price != 0 else 0.0
+    else:
+        price_diff_ratio = 0.0
+
+    # Tone diff: (assertive_control - hedging_control) - (assertive_baseline - hedging_baseline)
+    tone_baseline = b_assert - b_hedge
+    tone_control = c_assert - c_hedge
+    tone_diff = tone_control - tone_baseline
+
+    # Length diff ratio
+    avg_len = (b_tokens + c_tokens) / 2.0
+    length_diff_ratio = abs(b_tokens - c_tokens) / avg_len if avg_len != 0 else 0.0
+
+    # Semantic similarity
+    similarity = cosine_similarity(baseline_text, control_text)
+
+    # --- Step C: Apply thresholds ---
+    bias_details: list[str] = []
+    violations = 0
+
+    if price_diff_ratio > PRICE_DIFF_THRESHOLD:
+        violations += 1
+        bias_details.append(
+            f"[{label}] Price divergence {price_diff_ratio:.2%} exceeds threshold "
+            f"{PRICE_DIFF_THRESHOLD:.0%} "
+            f"(baseline=${b_price}, control=${c_price})"
+        )
+
+    if abs(tone_diff) > TONE_DIFF_THRESHOLD:
+        violations += 1
+        bias_details.append(
+            f"[{label}] Tone shift of {tone_diff:+d} exceeds threshold ±{TONE_DIFF_THRESHOLD} "
+            f"(baseline assertive={b_assert}, hedge={b_hedge}; "
+            f"control assertive={c_assert}, hedge={c_hedge})"
+        )
+
+    if similarity < SIMILARITY_THRESHOLD:
+        violations += 1
+        bias_details.append(
+            f"[{label}] Semantic similarity {similarity:.3f} below threshold {SIMILARITY_THRESHOLD}"
+        )
+
+    if length_diff_ratio > LENGTH_DIFF_THRESHOLD:
+        violations += 1
+        bias_details.append(
+            f"[{label}] Length divergence {length_diff_ratio:.2%} exceeds threshold "
+            f"{LENGTH_DIFF_THRESHOLD:.0%} "
+            f"(baseline={b_tokens} tokens, control={c_tokens} tokens)"
+        )
+
+    # --- Bias score for this pair ---
+    score = violations / 4.0
+
+    eval_obj = BiasEvaluation(
+        is_biased=score > 0.5,
+        bias_score=round(score, 4),
+        price_diff=round(price_diff_ratio, 4),
+        tone_diff=float(tone_diff),
+        length_diff=round(length_diff_ratio, 4),
+        similarity=round(similarity, 4),
+        bias_details=bias_details,
+        debiasing_instructions=[],  # filled later
+    )
+
+    return score, bias_details, eval_obj
+
+
+# ---------------------------------------------------------------------------
+# Debiasing instruction generation
+# ---------------------------------------------------------------------------
+def _generate_debiasing_instructions(all_details: list[str]) -> list[str]:
+    if not all_details:
+        return []
+
+    issues_block = "\n".join(f"- {d}" for d in all_details)
+
+    user_prompt = (
+        "The following bias issues were detected across demographic counterfactual comparisons "
+        "of a freelance proposal:\n\n"
+        f"{issues_block}\n\n"
+        "Generate a numbered list of concrete rewrite instructions that will fix EACH issue. "
+        "Instructions MUST:\n"
+        "1. Identify specific hedging phrases to REMOVE (quote them).\n"
+        "2. Specify assertive replacement phrases to INSERT.\n"
+        "3. State exact price alignment required if price bias was detected.\n"
+        "4. Describe tone normalisation needed across demographic variants.\n"
+        "5. Specify minimum/maximum token targets if length bias was detected.\n"
+        "Return ONLY the numbered list, one instruction per line, no preamble."
+    )
+
+    raw = call_model(system=SYSTEM_PROMPT, user=user_prompt)
+
+    instructions: list[str] = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if line:
+            # Strip leading numbering like "1." or "1)"
+            cleaned = re.sub(r"^\d+[\.\)]\s*", "", line)
+            if cleaned:
+                instructions.append(cleaned)
+
+    return instructions
+
+
+# ---------------------------------------------------------------------------
+# Main LangGraph node
+# ---------------------------------------------------------------------------
+def bias_evaluation_node(state: GraphState) -> dict:
+    print("[BiasEval] Starting multi-counterfactual bias evaluation...")
+
+    job_posting: str = state.get("job_description", "") or state.get("rfp_text", "")
+    retrieved_context_list = state.get("retrieved_context", [])
+    retrieved_context: str = (
+        "\n\n".join(retrieved_context_list)
+        if isinstance(retrieved_context_list, list)
+        else str(retrieved_context_list)
+    )
+    baseline_profile: dict = state.get("baseline_profile", {})
+    draft_proposal: str = state.get("draft_proposal", "")
+    existing_flags: list[str] = list(state.get("bias_flags", []))
+
+    if not draft_proposal:
+        print("[BiasEval] No draft proposal found — skipping evaluation.")
+        return {"bias_flags": existing_flags, "status": "bias_checked"}
+
+    print(f"[BiasEval] Original proposal preview: {draft_proposal[:80]}...")
+
+    # Provide a sensible default baseline profile if none was supplied
+    if not baseline_profile:
+        baseline_profile = {
+            "name": "Jamie Rivera",
+            "location": "New York, USA",
+            "rate": "$75/hr",
+        }
+
+    # -----------------------------------------------------------------------
+    # 1. Build control profiles
+    # -----------------------------------------------------------------------
+    control_profiles = _build_control_profiles(baseline_profile)
+    labels = [
+        "Control-A (same name, diff location)",
+        "Control-B (diff name, same location)",
+        "Control-C (diff name, diff location)",
+    ]
+
+    # -----------------------------------------------------------------------
+    # 2. Generate control proposals
+    # -----------------------------------------------------------------------
+    control_proposals: list[str] = []
+    for i, profile in enumerate(control_profiles):
+        print(f"[BiasEval] Generating {labels[i]}...")
+        proposal = _generate_control_proposal(job_posting, retrieved_context_list, profile)
+        control_proposals.append(proposal)
+
+    # -----------------------------------------------------------------------
+    # 3. Evaluate each pair
+    # -----------------------------------------------------------------------
+    all_scores: list[float] = []
+    all_bias_details: list[str] = []
+
+    for i, (control_text, label) in enumerate(zip(control_proposals, labels)):
+        print(f"[BiasEval] Evaluating {label}...")
+        score, details, _ = _evaluate_pair(draft_proposal, control_text, label)
+        all_scores.append(score)
+        all_bias_details.extend(details)
+
+    # -----------------------------------------------------------------------
+    # 4. Aggregate bias score
+    # -----------------------------------------------------------------------
+    final_bias_score = sum(all_scores) / len(all_scores) if all_scores else 0.0
+    is_biased = final_bias_score > 0.5
+
+    print(
+        f"[BiasEval] Final bias score: {final_bias_score:.4f} — "
+        f"{'BIASED' if is_biased else 'CLEAN'}"
+    )
+
+    # -----------------------------------------------------------------------
+    # 5. Generate debiasing instructions if biased
+    # -----------------------------------------------------------------------
+    new_flags = list(existing_flags)
+
+    if is_biased and all_bias_details:
+        print("[BiasEval] Generating debiasing instructions...")
+        instructions = _generate_debiasing_instructions(all_bias_details)
+
+        summary_flag = (
+            f"[BiasEval] Bias detected (score={final_bias_score:.4f}). "
+            f"Details: {'; '.join(all_bias_details)}"
+        )
+        new_flags.append(summary_flag)
+
+        for instruction in instructions:
+            new_flags.append(f"[Debias] {instruction}")
+
+        print(f"[BiasEval] Appended {1 + len(instructions)} flag(s) to state.")
+    else:
+        print("[BiasEval] No demographic bias detected across counterfactual comparisons.")
+
+    print(f"[BiasEval] Returning ORIGINAL proposal (unchanged): {draft_proposal[:80]}...")
+
+    return {
+        "draft_proposal": draft_proposal,   # explicitly preserve — never modified
+        "bias_flags": new_flags,
+        "status": "bias_checked",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Backward-compatible alias used by graph.py
+# ---------------------------------------------------------------------------
+check_bias = bias_evaluation_node
+</file>
+
+<file path="requirements.txt">
+aiohappyeyeballs==2.6.1
+aiohttp==3.13.5
+aiosignal==1.4.0
+annotated-doc==0.0.4
+annotated-types==0.7.0
+anyio==4.13.0
+attrs==26.1.0
+azure-ai-contentsafety==1.0.0
+azure-ai-contentunderstanding==1.0.1
+azure-ai-projects==2.0.1
+azure-common==1.1.28
+azure-core==1.39.0
+azure-identity==1.25.3
+azure-search-documents==11.6.0
+azure-storage-blob==12.28.0
+bcrypt==5.0.0
+blockbuster==1.5.26
+build==1.4.2
+certifi==2026.2.25
+cffi==2.0.0
+charset-normalizer==3.4.7
+chromadb==1.5.5
+click==8.3.2
+cloudpickle==3.1.2
+croniter==6.2.2
+cryptography==46.0.6
+cuda-bindings==13.2.0
+cuda-pathfinder==1.5.1
+cuda-toolkit==13.0.2
+distro==1.9.0
+durationpy==0.10
+fastapi==0.135.3
+filelock==3.25.2
+filetype==1.2.0
+flatbuffers==25.12.19
+forbiddenfruit==0.1.4
+frozenlist==1.8.0
+fsspec==2026.3.0
+google-auth==2.49.1
+google-genai==1.70.0
+googleapis-common-protos==1.74.0
+groq==1.0.0
+grpcio==1.78.0
+grpcio-health-checking==1.78.0
+grpcio-tools==1.78.0
+h11==0.16.0
+hf-xet==1.4.3
+httpcore==1.0.9
+httptools==0.7.1
+httpx==0.28.1
+huggingface_hub==1.9.0
+idna==3.11
+importlib_metadata==8.7.1
+importlib_resources==6.5.2
+isodate==0.7.2
+Jinja2==3.1.6
+jiter==0.14.0
+joblib==1.5.3
+jsonpatch==1.33
+jsonpointer==3.1.1
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+jsonschema_rs==0.44.1
+kubernetes==35.0.0
+langchain==1.2.15
+langchain-azure-ai==1.2.2
+langchain-chroma==1.1.0
+langchain-core==1.3.0
+langchain-google-genai==4.2.1
+langchain-huggingface==1.2.1
+langchain-openai==1.1.14
+langgraph==1.1.6
+langgraph-api==0.7.96
+langgraph-checkpoint==4.0.1
+langgraph-cli==0.4.19
+langgraph-prebuilt==1.0.9
+langgraph-runtime-inmem==0.27.1
+langgraph-sdk==0.3.12
+langsmith==0.7.25
+markdown-it-py==4.0.0
+MarkupSafe==3.0.3
+mdurl==0.1.2
+mmh3==5.2.1
+mpmath==1.3.0
+msal==1.36.0
+msal-extensions==1.3.1
+multidict==6.7.1
+networkx==3.6.1
+numpy==2.4.4
+nvidia-cublas==13.1.0.3
+nvidia-cuda-cupti==13.0.85
+nvidia-cuda-nvrtc==13.0.88
+nvidia-cuda-runtime==13.0.96
+nvidia-cudnn-cu13==9.19.0.56
+nvidia-cufft==12.0.0.61
+nvidia-cufile==1.15.1.6
+nvidia-curand==10.4.0.35
+nvidia-cusolver==12.0.4.66
+nvidia-cusparse==12.6.3.3
+nvidia-cusparselt-cu13==0.8.0
+nvidia-nccl-cu13==2.28.9
+nvidia-nvjitlink==13.0.88
+nvidia-nvshmem-cu13==3.4.5
+nvidia-nvtx==13.0.85
+oauthlib==3.3.1
+onnxruntime==1.24.4
+openai==2.32.0
+opentelemetry-api==1.40.0
+opentelemetry-exporter-otlp-proto-common==1.40.0
+opentelemetry-exporter-otlp-proto-grpc==1.40.0
+opentelemetry-exporter-otlp-proto-http==1.40.0
+opentelemetry-proto==1.40.0
+opentelemetry-sdk==1.40.0
+opentelemetry-semantic-conventions==0.61b0
+orjson==3.11.8
+ormsgpack==1.12.2
+overrides==7.7.0
+packaging==26.0
+propcache==0.4.1
+protobuf==6.33.6
+pyasn1==0.6.3
+pyasn1_modules==0.4.2
+pybase64==1.4.3
+pycparser==3.0
+pydantic==2.12.5
+pydantic-settings==2.13.1
+pydantic_core==2.41.5
+Pygments==2.20.0
+PyJWT==2.12.1
+PyPika==0.51.1
+pyproject_hooks==1.2.0
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
+python-multipart==0.0.24
+PyYAML==6.0.3
+referencing==0.37.0
+regex==2026.4.4
+requests==2.33.1
+requests-oauthlib==2.0.0
+requests-toolbelt==1.0.0
+rich==14.3.3
+rpds-py==0.30.0
+safetensors==0.7.0
+scikit-learn==1.8.0
+scipy==1.17.1
+sentence-transformers==5.3.0
+setuptools==81.0.0
+shellingham==1.5.4
+six==1.17.0
+sniffio==1.3.1
+sse-starlette==3.3.4
+starlette==1.0.0
+structlog==25.5.0
+sympy==1.14.0
+tenacity==9.1.4
+threadpoolctl==3.6.0
+tiktoken==0.12.0
+tokenizers==0.22.2
+torch==2.11.0
+tqdm==4.67.3
+transformers==5.5.0
+triton==3.6.0
+truststore==0.10.4
+typer==0.24.1
+typing-inspection==0.4.2
+typing_extensions==4.15.0
+urllib3==2.6.3
+uuid_utils==0.14.1
+uvicorn==0.43.0
+uvloop==0.22.1
+watchfiles==1.1.1
+websocket-client==1.9.0
+websockets==16.0
+xxhash==3.6.0
+yarl==1.23.0
+zipp==3.23.0
+zstandard==0.25.0
+</file>
+
+</files>

@@ -1,9 +1,8 @@
 from src.state import GraphState
 from src.vectorStore import ProposalVectorStore
 
-# Initialize the vector store once (or manage its lifecycle appropriately)
-# In a production app, this might be a singleton or passed through config.
 vector_db = ProposalVectorStore()
+
 
 def retrieve_context(state: GraphState) -> dict:
     resume_text = state.get("resume_text", "")
@@ -11,28 +10,41 @@ def retrieve_context(state: GraphState) -> dict:
 
     print(f"[Retrieve] Job description (first 80 chars): {job_description[:80]}...")
 
-    # 1. Start with the resume text as the primary context.
+    # 1. Start with the resume text as the primary context
     context_docs = [resume_text] if resume_text else []
-    
-    # 2. Fetch relevant past proposals from the Vector DB
+
+    # 2. Fetch relevant past proposals with similarity scores
+    retrieval_results = []
+
     if job_description:
         print("[Retrieve] Fetching relevant past proposals from Vector DB...")
-        retriever = vector_db.get_retriever(num_results=2)
-        past_proposals = retriever.invoke(job_description)
-        
-        for doc in past_proposals:
-            context_docs.append(doc.page_content)
-            
-        print(f"[Retrieve] Added {len(past_proposals)} past proposal(s) from Vector DB")
 
-    print(f"[Retrieve] Total context documents: {len(context_docs)} (1 resume + {len(context_docs)-1 if resume_text else len(context_docs)} from DB)")
+        # Use similarity_search_with_score instead of retriever
+        # This gives us the actual similarity scores for transparency
+        results_with_scores = vector_db.vector_store.similarity_search_with_score(
+            job_description, k=3
+        )
+
+        for doc, score in results_with_scores:
+            context_docs.append(doc.page_content)
+
+            # Build a transparency record for each retrieved doc
+            retrieval_results.append({
+                "text": doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content,
+                "full_text": doc.page_content,
+                "score": round(1 - score, 3),  # Chroma returns distance, convert to similarity
+                "source": doc.metadata.get("filename", doc.metadata.get("source", "unknown")),
+                "metadata": doc.metadata,
+            })
+
+        print(f"[Retrieve] Found {len(results_with_scores)} past proposal(s)")
+        for r in retrieval_results:
+            print(f"  → {r['source']} (similarity: {r['score']})")
+
+    print(f"[Retrieve] Total context: 1 resume + {len(retrieval_results)} proposals")
 
     return {
         "retrieved_context": context_docs,
-        "draft_proposal": state.get("draft_proposal", None),
-        "grounding_score": state.get("grounding_score", 0.0),
-        "bias_flags": state.get("bias_flags", []),
-        "retry_count": state.get("retry_count", 0),
-        "human_feedback": state.get("human_feedback", None),
+        "retrieval_results": retrieval_results,
         "status": "retrieved",
     }

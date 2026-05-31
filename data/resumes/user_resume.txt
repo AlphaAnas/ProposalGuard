@@ -1,54 +1,50 @@
-Muhammad Anas
-Karachi, Paksitan | anas.carter@email.com | github.com/anas | linkedin.com/in/anas
+HASSAN IQBAL
+Full-stack developer building production web apps and AI systems for founders.
+Karachi, Pakistan · hassaniqbal19343@gmail.com · https://on.contra.com/TG7Lzh
 
-SUMMARY
-Full-stack ML engineer with 5+ years of experience building and deploying production machine learning systems, data pipelines, and AI-powered applications. Skilled across the full lifecycle from data ingestion and model training to API deployment and cloud infrastructure. Strong focus on responsible AI, system reliability, and clean, maintainable code.
 
-EDUCATION
-B.S. in Computer Science, University of Karachi, Pakistan
-GPA: 3.8/4.0 | Graduated May 2020
+WHAT I DO
 
-RELEVANT COURSEWORK
-Machine Learning, Deep Learning, Distributed Systems, Databases, Algorithms, Natural Language Processing
+I'm the technical partner non-technical founders call when they need a real product, not a prototype. I build and ship on Next.js, TypeScript, and modern AI stacks (Claude, OpenAI, RAG). I'm strong at going from a Figma or a Bolt/Replit prototype to a production app you can actually run a business on.
 
-TECHNICAL SKILLS
-Languages:     Python, TypeScript, JavaScript, SQL, Bash
-ML / AI:       PyTorch, scikit-learn, XGBoost, LightGBM, Hugging Face Transformers, LangChain, LangGraph
-Data:          pandas, NumPy, Apache Spark, dbt, Apache Airflow, Snowflake, PostgreSQL
-Backend:       FastAPI, Node.js, REST APIs, GraphQL, WebSockets
-Frontend:      React, Next.js, Tailwind CSS
-Infra / Cloud: AWS (EC2, S3, SageMaker, EKS), Docker, Kubernetes, Terraform, GitHub Actions, Prometheus, Grafana
-VectorDBs:     ChromaDB, Pinecone, FAISS
-Tools:         MLflow, Weights & Biases, Jupyter, Git
 
-EXPERIENCE
+RECENT WORK
 
-Senior ML Engineer — Stripe, San Francisco, CA (Jan 2023 – Present)
-. Built a real-time fraud detection system using XGBoost and LightGBM on 50M+ daily transactions, reducing fraudulent chargebacks by 34% within 3 months of deployment.
-. Designed and maintained the full ML pipeline: feature engineering with pandas/Spark, model training tracked via MLflow, and a FastAPI inference service serving predictions at <40ms p99 latency.
-. Containerized all services with Docker, deployed on AWS SageMaker for auto-scaling, and set up Prometheus + Grafana dashboards for model drift monitoring.
-. Integrated RAG-based anomaly explanations using LangChain + ChromaDB to surface interpretable alerts for the fraud ops team.
+Prsoo — AI coaching platform, shipped in 4 weeks
+Built on Claude API with streaming, session state, multi-turn context. The founder was non-technical. I owned every technical decision end-to-end.
 
-ML Engineer — Scale AI, San Francisco, CA (Jul 2020 – Dec 2022)
-. Developed and shipped 3 NLP models for text classification and named entity recognition using Hugging Face Transformers, improving label accuracy by 22% over baseline.
-. Built ETL pipelines with Apache Airflow and dbt to ingest and transform annotation data into a Snowflake warehouse, replacing a brittle set of manual scripts.
-. Wrote REST API wrappers in FastAPI to expose model inference endpoints consumed by internal tooling and external clients.
-. Mentored 2 junior engineers and led weekly ML reading group sessions.
+NestLink — Real estate SaaS rebuild, 15 weeks, 3-person team
+Took a Bolt.new prototype and rebuilt it as a production platform. Multi-tenant, Stripe billing, 4-role permissions. I managed the dev + QA team in Linear.
 
-Software Engineering Intern — Salesforce, San Francisco, CA (May 2019 – Aug 2019)
-. Built a React + Node.js internal dashboard for visualizing CRM data trends, adopted by the data analytics team for weekly reporting.
-. Wrote unit and integration tests with Jest achieving 85% coverage on all new features.
+Chronicler Labs — Lead Frontend Engineer (a16z-backed AI startup)
+Built WhatsApp AI agents alongside ex-Meta and ex-WhatsApp engineers. System held 1,000+ concurrent users with zero downtime during a viral launch (300K+ impressions overnight). Promoted twice, "Exceeds Expectations" reviews.
 
-PROJECTS
+Morti — Mortgage platform with AI document retrieval
+Built the RAG pipeline for parsing complex financial PDFs and answering borrower questions with grounded responses.
 
-ProposalGuard (Personal Project)
-. Built an agentic AI system using LangGraph to draft personalized freelance proposals grounded in a user's resume and past proposals stored in ChromaDB.
-. Implemented human-in-the-loop review, bias detection guardrails, and a FastAPI backend; deployed locally with Docker.
 
-Open-Source LLM Benchmarking Tool (GitHub)
-. Developed a CLI tool in Python to benchmark LLM response quality across multiple providers (OpenAI, Gemini, Anthropic) using configurable evaluation rubrics.
-. Gained 400+ GitHub stars within 2 months of release.
+CREDIBILITY AT A GLANCE
 
-CERTIFICATIONS
-AWS Certified Solutions Architect — Associate
-AWS Certified Machine Learning — Specialty
+• Top 1% on Contra with a perfect 5.0 rating across 50+ shipped projects
+• 3.5+ years of freelance experience, primarily US and European founders
+• Lead Frontend Engineer at Chronicler Labs (a16z-backed)
+• Final-year CS student at Habib University (3.80 CGPA, Dean's List)
+
+
+HOW I WORK
+
+I'm direct. I ship on milestones, not hours. I communicate in plain English.
+
+Mitch, who hired me at Prsoo, put it this way: "you stood out as being very articulate/conversational in English and had on-your-feet knowledge of the topics we talked through."
+
+I own technical decisions end-to-end so you can focus on your customers, not on reviewing pull requests you don't want to review. And because I'm still building my track record, I genuinely care about the outcome. A bad review actually costs me, something more senior between-jobs folks don't worry about.
+
+
+STACK
+
+Next.js · React · TypeScript · Tailwind · Node.js · PostgreSQL · Supabase · Stripe · Claude API · OpenAI API · RAG (LangGraph, ChromaDB) · Temporal
+
+
+HOW TO START A CONVERSATION
+
+Drop me a note at hassaniqbal19343@gmail.com or through Contra with two things: what you're trying to build, and what the next four weeks should look like. I'll come back with honest thoughts on scope and whether we're a fit.
